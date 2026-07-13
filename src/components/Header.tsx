@@ -4,17 +4,17 @@ import { supabase } from "@/utils/supabase";
 import Link from 'next/link';
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import { useTheme } from "next-themes";
-import { 
-  Phone, 
-  Mail, 
-  Clock, 
-  Menu, 
-  X, 
-  User, 
-  Sun, 
-  Moon, 
-  LogOut, 
-  Bookmark, 
+import {
+  Phone,
+  Mail,
+  Clock,
+  Menu,
+  X,
+  User,
+  Sun,
+  Moon,
+  LogOut,
+  Bookmark,
   Heart
 } from 'lucide-react';
 import LoginModal from './LoginModal';
@@ -27,7 +27,8 @@ export default function Header() {
   const [mounted, setMounted] = useState(false);
   const [user, setUser] = useState<any>(null);
   const { resolvedTheme, setTheme } = useTheme();
-const MotionLink = motion(Link);
+  const MotionLink = motion(Link);
+
   useEffect(() => {
     setMounted(true);
     if (typeof window !== 'undefined' && window.location.hash.includes('access_token')) {
@@ -49,7 +50,7 @@ const MotionLink = motion(Link);
 
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
-    
+
     return () => {
       window.removeEventListener('scroll', handleScroll);
       authListener.subscription.unsubscribe();
@@ -69,98 +70,55 @@ const MotionLink = motion(Link);
     { name: 'Contact', path: '/site/contact' },
   ];
 
-  // Animation Variants (Explicitly typed to resolve Type Errors)
+  // ---------- Animation variants ----------
   const logoVariants: Variants = {
-    initial: { opacity: 0, scale: 0.8, y: -20 },
-    animate: { 
-      opacity: 1, 
-      scale: 1, 
-      y: 0,
-      transition: { duration: 0.6, ease: "easeOut" }
-    }
+    initial: { opacity: 0, y: -10 },
+    animate: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } }
   };
 
   const navLinkVariants: Variants = {
-    initial: { opacity: 0, y: -10 },
+    initial: { opacity: 0, y: -8 },
     animate: (i: number) => ({
       opacity: 1,
       y: 0,
-      transition: {
-        delay: 0.1 + i * 0.05,
-        duration: 0.4
-      }
+      transition: { delay: 0.05 + i * 0.04, duration: 0.3 }
     })
   };
 
   const topBarVariants: Variants = {
     initial: { height: 0, opacity: 0 },
-    animate: { 
-      height: "auto", 
-      opacity: 1,
-      transition: { duration: 0.4, delay: 0.2 }
-    }
+    animate: { height: "auto", opacity: 1, transition: { duration: 0.3 } }
   };
 
   const mobileMenuVariants: Variants = {
-    initial: { 
-      clipPath: "inset(100% 0 0 0)",
-      opacity: 0 
-    },
-    animate: { 
-      clipPath: "inset(0% 0 0 0)",
+    initial: { clipPath: "inset(0 0 100% 0)", opacity: 0 },
+    animate: {
+      clipPath: "inset(0 0 0% 0)",
       opacity: 1,
-      transition: { 
-        clipPath: { 
-          type: "spring", 
-          stiffness: 300, 
-          damping: 30 
-        },
-        duration: 0.5
-      }
+      transition: { clipPath: { type: "spring", stiffness: 320, damping: 32 }, duration: 0.4 }
     },
-    exit: { 
-      clipPath: "inset(100% 0 0 0)",
-      opacity: 0,
-      transition: { duration: 0.3 }
-    }
+    exit: { clipPath: "inset(0 0 100% 0)", opacity: 0, transition: { duration: 0.25 } }
   };
 
   const dropdownVariants: Variants = {
-    initial: { 
-      opacity: 0, 
-      scale: 0.95, 
-      y: -10,
-      transition: { duration: 0.2 }
-    },
-    animate: { 
-      opacity: 1, 
-      scale: 1, 
-      y: 0,
-      transition: { duration: 0.25, ease: "easeOut" }
-    },
-    exit: { 
-      opacity: 0, 
-      scale: 0.95, 
-      y: -10,
-      transition: { duration: 0.15 }
-    }
+    initial: { opacity: 0, scale: 0.97, y: -6 },
+    animate: { opacity: 1, scale: 1, y: 0, transition: { duration: 0.18, ease: "easeOut" } },
+    exit: { opacity: 0, scale: 0.97, y: -6, transition: { duration: 0.12 } }
   };
 
-  // Render static skeleton matching layout dimensions during SSR/Loading to eliminate layout shifting
+  // ---------- Loading skeleton (matches final layout to avoid CLS) ----------
   if (!siteData || !mounted) {
     return (
       <div className="w-full fixed top-0 z-[100] bg-white dark:bg-black border-b border-slate-100 dark:border-white/10 animate-pulse">
-        {/* Mock Top Bar */}
-        <div className="bg-brand-green h-10 w-full" />
-        {/* Mock Main Nav Bar */}
-        <div className="px-6 md:px-12 py-5 flex justify-between items-center max-w-[1400px] mx-auto">
-          <div className="h-12 w-36 bg-slate-200 dark:bg-zinc-800 rounded-xl" />
-          <div className="hidden lg:flex gap-8">
+        <div className="bg-brand-green h-9 w-full" />
+        <div className="px-6 md:px-12 py-3.5 flex justify-between items-center max-w-[1400px] mx-auto">
+          <div className="h-10 w-32 bg-slate-200 dark:bg-zinc-800 rounded-lg" />
+          <div className="hidden lg:flex gap-2">
             {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="h-4 w-14 bg-slate-200 dark:bg-zinc-800 rounded" />
+              <div key={i} className="h-9 w-20 bg-slate-200 dark:bg-zinc-800 rounded-full" />
             ))}
           </div>
-          <div className="h-12 w-32 bg-slate-200 dark:bg-zinc-800 rounded-3xl" />
+          <div className="h-10 w-28 bg-slate-200 dark:bg-zinc-800 rounded-full" />
         </div>
       </div>
     );
@@ -168,303 +126,208 @@ const MotionLink = motion(Link);
 
   return (
     <header className="w-full fixed top-0 z-[100] transition-all duration-300">
-      
+
       {/* TOP BAR */}
-      <motion.div 
+      <motion.div
         variants={topBarVariants}
         initial="initial"
         animate="animate"
-        className="bg-gradient-to-r from-brand-green to-brand-green/90 text-white py-2.5 px-6 md:px-12 flex flex-col md:flex-row justify-between items-center gap-2 backdrop-blur-xl shadow-lg"
+        className="bg-brand-green text-white py-2 px-6 md:px-12 flex flex-col md:flex-row justify-between items-center gap-1.5 text-[11px]"
       >
-        <motion.div 
-          className="flex items-center gap-6 text-[10px] font-black uppercase tracking-widest"
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <motion.a 
-            href={`tel:${siteData.phone_number}`} 
-            className="flex items-center gap-2 hover:text-brand-yellow transition-all group"
-            whileHover={{ scale: 1.05 }}
+        <div className="flex items-center gap-5 font-semibold tracking-wide">
+          <a
+            href={`tel:${siteData.phone_number}`}
+            className="flex items-center gap-1.5 hover:text-brand-yellow transition-colors"
           >
-            <motion.div
-              animate={{ rotate: [0, 360] }}
-              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-            >
-              <Phone size={12} className="text-brand-yellow group-hover:scale-110 transition-transform" />
-            </motion.div>
+            <Phone size={12} className="text-brand-yellow" />
             {siteData.phone_number}
-          </motion.a>
-          
-          <motion.a 
-            href={`mailto:${siteData.email}`} 
-            className="flex items-center gap-2 hover:text-brand-yellow transition-all group"
-            whileHover={{ scale: 1.05 }}
+          </a>
+
+          <a
+            href={`mailto:${siteData.email}`}
+            className="flex items-center gap-1.5 hover:text-brand-yellow transition-colors"
           >
-            <Mail size={12} className="text-brand-yellow group-hover:scale-110 transition-transform" />
+            <Mail size={12} className="text-brand-yellow" />
             {siteData.email}
-          </motion.a>
-        </motion.div>
-        
-        <motion.div 
-          className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-white/90"
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.35 }}
-        >
-          <Clock size={12} className="animate-pulse" />
-          Mon-Sat: 9:00 AM - 6:00 PM
-        </motion.div>
+          </a>
+        </div>
+
+        <div className="flex items-center gap-1.5 font-medium text-white/85">
+          <Clock size={12} />
+          Mon–Sat: 9:00 AM – 6:00 PM
+        </div>
       </motion.div>
 
       {/* MAIN NAVIGATION */}
-      <nav className={`px-6 md:px-12 transition-all duration-700 ${
+      <nav
+        className={`px-6 md:px-12 transition-all duration-300 border-b ${
           isScrolled
-            ? 'bg-white/95 dark:bg-black/95 backdrop-blur-2xl shadow-2xl py-3 border-b border-brand-green/20'
-            : 'bg-white/80 dark:bg-black/80 backdrop-blur-xl py-5 border-b border-slate-100/50 dark:border-white/10'
-        }`}>
-        <motion.div 
-          className="max-w-[1400px] mx-auto flex items-center justify-between"
-          initial="initial"
-          animate="animate"
-          variants={{
-            initial: { opacity: 0, y: -20 },
-            animate: { opacity: 1, y: 0 }
-          }}
-        >
+            ? 'bg-white/95 dark:bg-black/95 backdrop-blur-xl shadow-md py-2.5 border-slate-200 dark:border-white/10'
+            : 'bg-white dark:bg-black py-4 border-slate-100 dark:border-white/5'
+        }`}
+      >
+        <div className="max-w-[1400px] mx-auto flex items-center justify-between gap-6">
+
           {/* LOGO */}
-          <motion.div variants={logoVariants}>
-            <Link href="/" className="flex items-center gap-4 group">
+          <motion.div variants={logoVariants} initial="initial" animate="animate">
+            <Link href="/" className="flex items-center gap-3 group shrink-0">
               {siteData.logo_url && (
-                <motion.div 
-                  className="p-2 bg-gradient-to-br from-brand-green to-brand-green/80 rounded-xl shadow-lg backdrop-blur-sm border border-white/20"
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <motion.img 
-                    src={siteData.logo_url} 
-                    alt="Logo" 
-                    className="w-12 h-12 object-contain"
-                    initial={{ rotate: -180 }}
-                    animate={{ rotate: 0 }}
-                    transition={{ duration: 0.6, delay: 0.1 }}
+                <div className="w-10 h-10 rounded-lg bg-brand-green/5 flex items-center justify-center overflow-hidden">
+                  <img
+                    src={siteData.logo_url}
+                    alt="Logo"
+                    className="w-8 h-8 object-contain"
                   />
-                </motion.div>
+                </div>
               )}
-              <motion.div 
-                className="flex flex-col"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                <span className="text-2xl font-black text-black dark:text-white tracking-tighter uppercase leading-none">
+              <div className="flex flex-col leading-tight">
+                <span className="text-lg font-black text-black dark:text-white tracking-tight uppercase">
                   {siteData.site_name}<span className="text-brand-yellow">.</span>
                 </span>
-                <motion.span 
-                  className="text-[10px] font-bold text-brand-green uppercase tracking-widest mt-1"
-                  initial={{ scaleX: 0 }}
-                  animate={{ scaleX: 1 }}
-                  transition={{ delay: 0.3 }}
-                >
+                <span className="text-[9px] font-bold text-brand-green uppercase tracking-widest">
                   {siteData.tag_line}
-                </motion.span>
-              </motion.div>
+                </span>
+              </div>
             </Link>
           </motion.div>
 
-          {/* DESKTOP NAV & ACTIONS */}
-          <motion.div 
-            className="hidden lg:flex items-center gap-12"
-            initial="initial"
-            animate="animate"
-            variants={{
-              initial: { opacity: 0 },
-              animate: { 
-                opacity: 1,
-                transition: {
-                  staggerChildren: 0.05,
-                  delayChildren: 0.4
-                }
-              }
-            }}
-          >
-  {navLinks.map((link, i) => (
-  <motion.div key={link.name} custom={i}>
-    <MotionLink 
-      href={link.path} 
-      onClick={() => setMobileMenuOpen(false)}
-      className="block text-5xl lg:text-6xl font-black uppercase tracking-tighter text-black dark:text-white py-6 px-8 rounded-3xl bg-white/50 dark:bg-black/30 backdrop-blur-xl border border-slate-200/50 dark:border-white/10 hover:bg-brand-green hover:text-white hover:border-brand-green transition-all duration-300 shadow-xl hover:shadow-brand-green/20"
-      whileTap={{ scale: 0.98 }}
-    >
-      {link.name}
-    </MotionLink>
-  </motion.div>
-))}
+          {/* DESKTOP NAV — compact pill tabs */}
+          <div className="hidden lg:flex items-center gap-1 bg-slate-50 dark:bg-zinc-900 p-1 rounded-full border border-slate-100 dark:border-white/5">
+            {navLinks.map((link, i) => (
+              <motion.div
+                key={link.name}
+                custom={i}
+                variants={navLinkVariants}
+                initial="initial"
+                animate="animate"
+              >
+                <MotionLink
+                  href={link.path}
+                  className="block text-[12px] font-bold uppercase tracking-wide text-slate-600 dark:text-zinc-300 px-4 py-2 rounded-full hover:bg-brand-green hover:text-white transition-colors duration-200"
+                  whileTap={{ scale: 0.96 }}
+                >
+                  {link.name}
+                </MotionLink>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* ACTIONS */}
+          <div className="hidden lg:flex items-center gap-3 shrink-0">
 
             {/* THEME TOGGLE */}
-            <motion.button 
-              onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")} 
-              className="p-3 rounded-2xl bg-zinc-100 dark:bg-zinc-900 text-brand-green dark:text-brand-yellow hover:scale-110 hover:rotate-180 transition-all duration-300 shadow-lg hover:shadow-brand-green/20"
-              whileHover={{ scale: 1.15 }}
-              whileTap={{ scale: 0.95 }}
+            <motion.button
+              onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+              className="p-2.5 rounded-full bg-slate-50 dark:bg-zinc-900 text-brand-green dark:text-brand-yellow hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors"
+              whileTap={{ scale: 0.9 }}
+              aria-label="Toggle theme"
             >
-              {mounted && (
-                <motion.div
-                  animate={{ rotate: [0, 360] }}
-                  transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                >
-                  {resolvedTheme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
-                </motion.div>
-              )}
+              {resolvedTheme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
             </motion.button>
 
             {/* AUTH SECTION */}
             <AnimatePresence mode="wait">
               {user ? (
-                <motion.div 
-                  className="flex items-center gap-4"
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
+                <motion.div
+                  className="flex items-center gap-2"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
                 >
-                  {/* WISHLIST BUTTON */}
-                  <motion.div whileHover={{ scale: 1.2, rotate: 10 }}>
-                    <Link 
-                      href="/site/wishlist" 
-                      className="p-3 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-zinc-900 dark:to-zinc-800 text-slate-500 hover:text-red-500 hover:from-red-50 hover:to-red-100 dark:hover:from-zinc-800 dark:hover:to-zinc-700 hover:shadow-lg transition-all duration-300 relative shadow-sm"
-                      title="My Wishlist"
-                    >
-                      <motion.div
-                        animate={{ 
-                          scale: [1, 1.1, 1],
-                          rotate: [0, 360]
-                        }}
-                        transition={{ 
-                          scale: { duration: 2, repeat: Infinity, repeatType: "reverse" },
-                          rotate: { duration: 10, repeat: Infinity, ease: "linear" }
-                        }}
-                      >
-                        <Heart size={20} className="group-hover:fill-red-500 transition-all" />
-                      </motion.div>
-                    </Link>
-                  </motion.div>
+                  {/* WISHLIST */}
+                  <Link
+                    href="/site/wishlist"
+                    className="p-2.5 rounded-full bg-slate-50 dark:bg-zinc-900 text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                    title="My Wishlist"
+                  >
+                    <Heart size={16} />
+                  </Link>
 
-                  {/* BOOKINGS BUTTON */}
-                  <motion.div whileHover={{ scale: 1.05 }}>
-                    <Link 
-                      href="/site/bookings" 
-                      className="flex items-center gap-2.5 bg-gradient-to-r from-brand-yellow to-brand-yellow/90 text-black px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:from-brand-green hover:to-brand-green hover:text-white transition-all duration-300 shadow-xl shadow-brand-yellow/30 hover:shadow-brand-green/30 active:scale-95"
-                    >
-                      <Bookmark size={16} />
-                      <span>My Books</span>
-                    </Link>
-                  </motion.div>
+                  {/* BOOKINGS */}
+                  <Link
+                    href="/site/bookings"
+                    className="flex items-center gap-2 bg-brand-yellow text-black px-4 py-2.5 rounded-full text-[11px] font-black uppercase tracking-wider hover:bg-brand-green hover:text-white transition-colors"
+                  >
+                    <Bookmark size={14} />
+                    <span>My Books</span>
+                  </Link>
 
                   {/* USER DROPDOWN */}
-                  <motion.div 
-                    className="group relative"
-                    whileHover={{ scale: 1.05 }}
-                  >
-                    <motion.button 
-                      className="w-12 h-12 rounded-2xl border-3 border-brand-green/50 p-1 overflow-hidden shadow-xl hover:border-brand-green hover:shadow-brand-green/20 transition-all duration-300"
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
+                  <div className="group relative">
+                    <button className="w-9 h-9 rounded-full border-2 border-brand-green/40 p-0.5 overflow-hidden hover:border-brand-green transition-colors">
                       {user.user_metadata?.avatar_url ? (
-                        <motion.img 
-                          src={user.user_metadata.avatar_url} 
-                          alt="User" 
-                          className="w-full h-full rounded-xl object-cover"
-                          whileHover={{ scale: 1.1, rotate: 5 }}
+                        <img
+                          src={user.user_metadata.avatar_url}
+                          alt="User"
+                          className="w-full h-full rounded-full object-cover"
                         />
                       ) : (
-                        <motion.div 
-                          className="w-full h-full bg-gradient-to-br from-brand-green to-brand-yellow text-white flex items-center justify-center rounded-xl shadow-inner"
-                          whileHover={{ scale: 1.1 }}
-                        >
-                          <User size={20} />
-                        </motion.div>
+                        <div className="w-full h-full bg-brand-green text-white flex items-center justify-center rounded-full">
+                          <User size={16} />
+                        </div>
                       )}
-                    </motion.button>
-                    
-                    <motion.div 
-                      className="absolute right-0 top-full pt-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible z-50"
+                    </button>
+
+                    <motion.div
+                      className="absolute right-0 top-full pt-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible z-50"
                       variants={dropdownVariants}
                       initial="initial"
                       animate="animate"
                       exit="exit"
                     >
-                      <motion.div 
-                        className="bg-white/95 dark:bg-zinc-950/95 backdrop-blur-2xl border border-brand-green/20 rounded-3xl shadow-2xl p-1 w-72 overflow-hidden"
-                        whileHover={{ y: -2, scale: 1.02 }}
-                      >
-                        <motion.div 
-                          className="px-6 py-4 bg-gradient-to-r from-brand-green/10 to-brand-yellow/10 rounded-2xl mb-3 border-b border-brand-green/20"
-                          initial={{ scaleY: 0 }}
-                          animate={{ scaleY: 1 }}
-                          transition={{ duration: 0.3 }}
-                        >
-                          <p className="text-[10px] font-black text-brand-green dark:text-brand-yellow uppercase tracking-[0.3em] truncate">
+                      <div className="bg-white dark:bg-zinc-950 border border-slate-100 dark:border-white/10 rounded-2xl shadow-xl p-1.5 w-60 overflow-hidden">
+                        <div className="px-4 py-3 bg-slate-50 dark:bg-zinc-900 rounded-xl mb-1">
+                          <p className="text-[10px] font-bold text-brand-green dark:text-brand-yellow uppercase tracking-wider truncate">
                             {user.email}
                           </p>
-                        </motion.div>
-                        
-                        <motion.div
-                          className="space-y-1"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ delay: 0.1 }}
+                        </div>
+
+                        <Link
+                          href="/site/profile"
+                          className="flex items-center gap-2.5 px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-zinc-300 hover:bg-brand-green/5 hover:text-brand-green rounded-xl transition-colors"
                         >
-                          <Link 
-                            href="/site/profile" 
-                            className="flex items-center gap-3 px-6 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-slate-600 dark:text-zinc-300 hover:bg-brand-green/5 hover:text-brand-green rounded-2xl transition-all duration-200"
-                          >
-                            <User size={16} />
-                            My Profile
-                          </Link>
-                          
-                          <motion.button 
-                            onClick={handleLogout}
-                            className="w-full flex items-center gap-3 px-6 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-2xl transition-all duration-200"
-                            whileHover={{ x: 4, scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                          >
-                            <LogOut size={16} />
-                            Sign Out
-                          </motion.button>
-                        </motion.div>
-                      </motion.div>
+                          <User size={14} />
+                          My Profile
+                        </Link>
+
+                        <button
+                          onClick={handleLogout}
+                          className="w-full flex items-center gap-2.5 px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-colors"
+                        >
+                          <LogOut size={14} />
+                          Sign Out
+                        </button>
+                      </div>
                     </motion.div>
-                  </motion.div>
+                  </div>
                 </motion.div>
               ) : (
                 <motion.button
                   onClick={() => setIsLoginOpen(true)}
-                  className="flex items-center gap-3 bg-gradient-to-r from-brand-yellow to-brand-yellow/90 hover:from-brand-green hover:to-brand-green text-black hover:text-white px-10 py-4 rounded-3xl text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-300 shadow-2xl shadow-brand-yellow/30 hover:shadow-brand-green/30 active:scale-95"
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
+                  className="flex items-center gap-2 bg-brand-yellow text-black px-5 py-2.5 rounded-full text-[11px] font-black uppercase tracking-wider hover:bg-brand-green hover:text-white transition-colors shadow-sm"
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.96 }}
                 >
-                  <User size={16} />
+                  <User size={14} />
                   <span>Member Login</span>
                 </motion.button>
               )}
             </AnimatePresence>
-          </motion.div>
+          </div>
 
           {/* MOBILE MENU BUTTON */}
-          <motion.button 
+          <button
             onClick={() => setMobileMenuOpen(!isMobileMenuOpen)}
-            className="lg:hidden p-3 text-brand-green dark:text-brand-yellow rounded-xl hover:bg-brand-green/10 dark:hover:bg-brand-yellow/10 transition-all shadow-md"
-            whileTap={{ scale: 0.9 }}
-            whileHover={{ scale: 1.1, rotate: 90 }}
+            className="lg:hidden p-2 text-brand-green dark:text-brand-yellow rounded-lg hover:bg-brand-green/10 dark:hover:bg-brand-yellow/10 transition-colors"
+            aria-label="Toggle menu"
           >
-            {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
-          </motion.button>
-        </motion.div>
+            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
       </nav>
 
       <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
-      
+
       {/* MOBILE MENU */}
       <AnimatePresence>
         {isMobileMenuOpen && (
@@ -473,117 +336,90 @@ const MotionLink = motion(Link);
             initial="initial"
             animate="animate"
             exit="exit"
-            className="lg:hidden fixed inset-0 top-[115px] bg-gradient-to-b from-white/95 to-white/80 dark:from-black/95 dark:to-black/80 backdrop-blur-2xl z-[90] p-8 space-y-8 shadow-2xl border-t border-brand-green/20"
+            className="lg:hidden fixed inset-0 top-[100px] bg-white dark:bg-black z-[90] p-6 space-y-6 overflow-y-auto"
           >
-            <motion.div 
-              className="space-y-6 pt-8"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-{navLinks.map((link, i) => (
-  <motion.div 
-    key={link.name} 
-    custom={i}
-    whileTap={{ scale: 0.98 }} /* Handled safely by motion.div */
-  >
-    <Link 
-      href={link.path} 
-      onClick={() => setMobileMenuOpen(false)}
-      className="block text-5xl lg:text-6xl font-black uppercase tracking-tighter text-black dark:text-white py-6 px-8 rounded-3xl bg-white/50 dark:bg-black/30 backdrop-blur-xl border border-slate-200/50 dark:border-white/10 hover:bg-brand-green hover:text-white hover:border-brand-green transition-all duration-300 shadow-xl hover:shadow-brand-green/20"
-    >
-      {link.name}
-    </Link>
-  </motion.div>
-))}
-            </motion.div>
+            <div className="space-y-2">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.name}
+                  href={link.path}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block text-2xl font-black uppercase tracking-tight text-black dark:text-white py-4 px-5 rounded-2xl bg-slate-50 dark:bg-zinc-900 hover:bg-brand-green hover:text-white transition-colors"
+                >
+                  {link.name}
+                </Link>
+              ))}
+            </div>
 
             {/* AUTH SECTION MOBILE */}
-            <motion.div 
-              className="pt-8 border-t border-slate-200/50 dark:border-white/10"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.4 }}
-            >
+            <div className="pt-6 border-t border-slate-100 dark:border-white/10">
               {user ? (
-                <motion.div className="space-y-4">
-                  {/* WISHLIST */}
-                  <motion.div whileHover={{ scale: 1.05 }}>
-                    <Link 
-                      href="/site/wishlist" 
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="flex items-center gap-4 text-3xl font-black uppercase tracking-tighter text-red-500 bg-gradient-to-r from-red-50 to-red-100 dark:from-red-500/10 dark:to-red-600/10 p-8 rounded-3xl border-2 border-red-200/50 dark:border-red-500/30 hover:border-red-500 hover:shadow-red-500/20 transition-all duration-300 shadow-lg"
-                    >
-                      <Heart size={36} className="fill-red-500" />
-                      <span>My Wishlist</span>
-                    </Link>
-                  </motion.div>
-
-                  {/* BOOKINGS */}
-                  <motion.div whileHover={{ scale: 1.05 }}>
-                    <Link 
-                      href="/site/bookings" 
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="block text-4xl font-black uppercase tracking-tighter text-brand-yellow bg-gradient-to-r from-brand-green to-brand-green/90 p-8 rounded-3xl text-center hover:from-brand-yellow hover:to-brand-yellow/90 hover:text-brand-green transition-all duration-300 shadow-2xl shadow-brand-green/30 hover:shadow-brand-yellow/30"
-                    >
-                      <div className="flex flex-col items-center gap-3 mb-4">
-                        <Bookmark size={40} />
-                        <span>My Bookings</span>
-                      </div>
-                    </Link>
-                  </motion.div>
-
-                  {/* USER INFO MOBILE */}
-                  <motion.div 
-                    className="p-8 bg-gradient-to-r from-brand-green/5 to-brand-yellow/5 rounded-3xl border border-brand-green/20 backdrop-blur-xl"
-                    whileHover={{ scale: 1.02 }}
+                <div className="space-y-3">
+                  <Link
+                    href="/site/wishlist"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-3 text-base font-black uppercase tracking-tight text-red-500 bg-red-50 dark:bg-red-500/10 p-5 rounded-2xl"
                   >
-                    <div className="flex items-center gap-4 mb-4">
+                    <Heart size={20} className="fill-red-500" />
+                    <span>My Wishlist</span>
+                  </Link>
+
+                  <Link
+                    href="/site/bookings"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center justify-center gap-3 text-base font-black uppercase tracking-tight text-white bg-brand-green p-5 rounded-2xl"
+                  >
+                    <Bookmark size={20} />
+                    <span>My Bookings</span>
+                  </Link>
+
+                  <div className="p-5 bg-slate-50 dark:bg-zinc-900 rounded-2xl">
+                    <div className="flex items-center gap-3 mb-4">
                       {user.user_metadata?.avatar_url ? (
-                        <div className="w-16 h-16 rounded-2xl overflow-hidden border-3 border-brand-green/50">
+                        <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-brand-green/40">
                           <img src={user.user_metadata.avatar_url} alt="User" className="w-full h-full object-cover" />
                         </div>
                       ) : (
-                        <div className="w-16 h-16 bg-gradient-to-br from-brand-green to-brand-yellow rounded-2xl flex items-center justify-center border-3 border-brand-green/50">
-                          <User size={28} className="text-white" />
+                        <div className="w-12 h-12 bg-brand-green rounded-xl flex items-center justify-center">
+                          <User size={22} className="text-white" />
                         </div>
                       )}
                       <div>
-                        <p className="text-lg font-black text-brand-green uppercase tracking-wider truncate max-w-[200px]">
+                        <p className="text-sm font-black text-brand-green uppercase tracking-wide truncate max-w-[180px]">
                           {user.email}
                         </p>
-                        <Link href="/site/profile" className="text-[10px] font-bold text-brand-yellow uppercase tracking-widest hover:underline">
+                        <Link
+                          href="/site/profile"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="text-[10px] font-bold text-brand-yellow uppercase tracking-widest hover:underline"
+                        >
                           View Profile →
                         </Link>
                       </div>
                     </div>
-                    
-                    <motion.button 
+
+                    <button
                       onClick={handleLogout}
-                      className="w-full flex items-center gap-4 text-xl font-black uppercase tracking-wider text-red-500 bg-red-50/50 dark:bg-red-500/10 p-6 rounded-2xl border-2 border-red-200/50 dark:border-red-500/30 hover:bg-red-100 hover:border-red-400 transition-all duration-300 shadow-lg"
-                      whileHover={{ scale: 1.02, x: 4 }}
-                      whileTap={{ scale: 0.98 }}
+                      className="w-full flex items-center gap-3 text-sm font-black uppercase tracking-wide text-red-500 bg-red-50 dark:bg-red-500/10 p-4 rounded-xl"
                     >
-                      <LogOut size={28} />
+                      <LogOut size={18} />
                       <span>Sign Out</span>
-                    </motion.button>
-                  </motion.div>
-                </motion.div>
+                    </button>
+                  </div>
+                </div>
               ) : (
-                <motion.button
+                <button
                   onClick={() => {
                     setIsLoginOpen(true);
                     setMobileMenuOpen(false);
                   }}
-                  className="w-full flex items-center justify-center gap-4 bg-gradient-to-r from-brand-yellow to-brand-yellow/90 text-black px-12 py-8 rounded-3xl text-xl font-black uppercase tracking-[0.1em] shadow-2xl shadow-brand-yellow/30 hover:from-brand-green hover:to-brand-green hover:text-white hover:shadow-brand-green/30 transition-all duration-300 active:scale-95"
-                  whileHover={{ scale: 1.05, y: -4 }}
-                  whileTap={{ scale: 0.95 }}
+                  className="w-full flex items-center justify-center gap-3 bg-brand-yellow text-black px-8 py-5 rounded-2xl text-base font-black uppercase tracking-wide shadow-md"
                 >
-                  <User size={32} />
+                  <User size={20} />
                   <span>Member Login</span>
-                </motion.button>
+                </button>
               )}
-            </motion.div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
