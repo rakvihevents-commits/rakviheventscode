@@ -207,7 +207,7 @@ export default function WishlistPage() {
                 className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-brand-green mb-4 transition-all inline-flex"
               >
                 <ChevronLeft size={14} />
-                <span>Back to Gallery</span>
+                <span>Back to Gallery.</span>
               </Link>
             </motion.div>
             
