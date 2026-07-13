@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { supabase } from "@/utils/supabase";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 import { 
   Calendar, 
   CheckCircle2, 
@@ -41,7 +41,7 @@ export default function BookingsPage() {
   }, []);
 
   // Animation Variants
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -52,7 +52,7 @@ export default function BookingsPage() {
     }
   };
 
-  const bookingCardVariants = {
+  const bookingCardVariants: Variants = {
     hidden: { 
       opacity: 0, 
       y: 40,
@@ -70,7 +70,7 @@ export default function BookingsPage() {
     })
   };
 
-  const statusVariants = {
+  const statusVariants: any = {
     pending: {
       backgroundColor: "#fef3c7",
       color: "#d97706",
@@ -85,7 +85,7 @@ export default function BookingsPage() {
     }
   };
 
-  const imageHoverVariants = {
+  const imageHoverVariants: Variants = {
     hover: {
       scale: 1.12,
       rotate: 1,
@@ -96,7 +96,7 @@ export default function BookingsPage() {
     }
   };
 
-  const buttonHoverVariants = {
+  const buttonHoverVariants: Variants = {
     hover: {
       scale: 1.05,
       backgroundColor: "#facc15",
