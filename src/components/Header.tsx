@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from "@/utils/supabase";
 import Link from 'next/link';
+import { motion, AnimatePresence, Variants } from "framer-motion";
 import { useTheme } from "next-themes";
 import { 
   Phone, 
@@ -16,7 +17,6 @@ import {
   Bookmark, 
   Heart
 } from 'lucide-react';
-import { motion, AnimatePresence } from "framer-motion";
 import LoginModal from './LoginModal';
 
 export default function Header() {
@@ -69,8 +69,8 @@ export default function Header() {
     { name: 'Contact', path: '/site/contact' },
   ];
 
-  // Animation Variants
-  const logoVariants = {
+  // Animation Variants (Explicitly typed to resolve Type Errors)
+  const logoVariants: Variants = {
     initial: { opacity: 0, scale: 0.8, y: -20 },
     animate: { 
       opacity: 1, 
@@ -80,7 +80,7 @@ export default function Header() {
     }
   };
 
-  const navLinkVariants = {
+  const navLinkVariants: Variants = {
     initial: { opacity: 0, y: -10 },
     animate: (i: number) => ({
       opacity: 1,
@@ -92,7 +92,7 @@ export default function Header() {
     })
   };
 
-  const topBarVariants = {
+  const topBarVariants: Variants = {
     initial: { height: 0, opacity: 0 },
     animate: { 
       height: "auto", 
@@ -101,7 +101,7 @@ export default function Header() {
     }
   };
 
-  const mobileMenuVariants = {
+  const mobileMenuVariants: Variants = {
     initial: { 
       clipPath: "inset(100% 0 0 0)",
       opacity: 0 
@@ -125,7 +125,7 @@ export default function Header() {
     }
   };
 
-  const dropdownVariants = {
+  const dropdownVariants: Variants = {
     initial: { 
       opacity: 0, 
       scale: 0.95, 
@@ -422,7 +422,6 @@ export default function Header() {
                           <Link 
                             href="/site/profile" 
                             className="flex items-center gap-3 px-6 py-4 text-[11px] font-black uppercase tracking-[0.2em] text-slate-600 dark:text-zinc-300 hover:bg-brand-green/5 hover:text-brand-green rounded-2xl transition-all duration-200"
-                            whileHover={{ x: 4 }}
                           >
                             <User size={16} />
                             My Profile
@@ -492,12 +491,6 @@ export default function Header() {
                     href={link.path} 
                     onClick={() => setMobileMenuOpen(false)}
                     className="block text-5xl lg:text-6xl font-black uppercase tracking-tighter text-black dark:text-white py-6 px-8 rounded-3xl bg-white/50 dark:bg-black/30 backdrop-blur-xl border border-slate-200/50 dark:border-white/10 hover:bg-brand-green hover:text-white hover:border-brand-green transition-all duration-300 shadow-xl hover:shadow-brand-green/20"
-                    whileHover={{ 
-                      scale: 1.02, 
-                      y: -8,
-                      backgroundColor: "#059669",
-                      color: "#ffffff"
-                    }}
                     whileTap={{ scale: 0.98 }}
                   >
                     {link.name}
