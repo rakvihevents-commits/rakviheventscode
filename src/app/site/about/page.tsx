@@ -4,7 +4,7 @@ import { supabase } from "@/utils/supabase";
 import {
   Users, Target, ArrowRight, Mail, Phone, MapPin, MessageCircle
 } from 'lucide-react';
-import { motion, AnimatePresence, useInView } from "framer-motion";
+import { motion } from "framer-motion";
 
 // --- CUSTOM SVG ICONS ---
 const InstagramIcon = ({ size = 24 }) => (
@@ -41,10 +41,30 @@ const heroTitleVariants = {
     rotateX: 0,
     transition: {
       duration: 1.2,
-      ease: [0.22, 1, 0.36, 1],
+      ease: [0.22, 1, 0.36, 1] as const,
       delay: 0.5
     }
   }
+};
+
+const cardVariants = {
+  hidden: {
+    opacity: 0,
+    y: 80,
+    scale: 0.9,
+    rotate: -5
+  },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    rotate: 0,
+    transition: {
+      duration: 0.7,
+      ease: [0.22, 1, 0.36, 1] as const,
+      delay: 0.3 + i * 0.15
+    }
+  })
 };
 
 const heroSubtitleVariants = {
@@ -68,30 +88,10 @@ const statsVariants = {
     y: 0,
     transition: {
       duration: 0.8,
-      ease: [0.68, -0.55, 0.265, 1.55],
+      ease: [0.68, -0.55, 0.265, 1.55] as const,
       delay: 0.2
     }
   }
-};
-
-const cardVariants = {
-  hidden: {
-    opacity: 0,
-    y: 80,
-    scale: 0.9,
-    rotate: -5
-  },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    rotate: 0,
-    transition: {
-      duration: 0.7,
-      ease: [0.22, 1, 0.36, 1],
-      delay: 0.3 + i * 0.15
-    }
-  })
 };
 
 const teamCardVariants = {
@@ -106,7 +106,7 @@ const teamCardVariants = {
     rotateY: 0,
     transition: {
       duration: 0.9,
-      ease: [0.25, 0.46, 0.45, 0.94],
+      ease: [0.25, 0.46, 0.45, 0.94] as const,
       delay: 0.8 + i * 0.2
     }
   })
@@ -125,17 +125,17 @@ const staggerContainer = {
 
 export default function AboutUsPage() {
   const [settings, setSettings] = useState<any>(null);
-const [data, setData] = useState<{
-  story: string;
-  mission: string;
-  team: any[];
-  stats: any[];
-}>({
-  story: '',
-  mission: '',
-  team: [],
-  stats: []
-});
+  const [data, setData] = useState<{
+    story: string;
+    mission: string;
+    team: any[];
+    stats: any[];
+  }>({
+    story: '',
+    mission: '',
+    team: [],
+    stats: []
+  });
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -161,7 +161,6 @@ const [data, setData] = useState<{
 
   return (
     <motion.div
-      // Added dark:bg-slate-950 and dark:text-white
       className="bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-sans selection:bg-brand-yellow selection:text-brand-green transition-colors duration-500"
       initial="hidden"
       animate="visible"
@@ -177,7 +176,6 @@ const [data, setData] = useState<{
           transition={{ duration: 2, ease: "easeOut" }}
           style={{ backgroundImage: "url('/aboutusbanner.jpeg')" }}
         />
-        {/* Added a darker gradient for dark mode to keep text readable */}
         <motion.div
           className="absolute inset-0 z-10 bg-gradient-to-r from-brand-green/95 via-brand-green/60 dark:via-brand-green/80 to-transparent"
           initial={{ scaleX: 0 }}
@@ -231,7 +229,6 @@ const [data, setData] = useState<{
               key={i}
               variants={cardVariants}
               custom={i}
-              // Added dark:bg-slate-900 and dark:border-brand-yellow
               className="bg-white dark:bg-slate-900 border-b-4 border-brand-yellow p-8 shadow-2xl rounded-2xl text-center group hover:bg-brand-green transition-all duration-300 origin-bottom"
             >
               <motion.h2
@@ -278,7 +275,6 @@ const [data, setData] = useState<{
           custom={1}
           className="bg-brand-green p-12 rounded-[3rem] text-white relative overflow-hidden shadow-xl"
         >
-          {/* Subtle decoration adjusted for visibility */}
           <div className="absolute top-0 right-0 w-32 h-32 bg-brand-yellow/20 rounded-full -mr-16 -mt-16" />
           <Target className="text-brand-yellow mb-6 relative z-10" size={48} />
           <h3 className="text-3xl font-black uppercase mb-6 tracking-tighter relative z-10">Our Mission</h3>
@@ -286,7 +282,6 @@ const [data, setData] = useState<{
         </motion.div>
       </motion.section>
 
-      {/* --- LEADERSHIP SECTION --- */}
       {/* --- LEADERSHIP SECTION WITH CINEMATIC ENTRANCE --- */}
       <motion.section
         className="pt-6 pb-14 bg-slate-50 dark:bg-slate-950 border-y border-slate-100 dark:border-slate-800 relative overflow-hidden"
@@ -295,7 +290,6 @@ const [data, setData] = useState<{
         viewport={{ once: true }}
         transition={{ duration: 1 }}
       >
-        {/* Abstract Movie Background Element */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-20 dark:opacity-40">
           <motion.div
             animate={{
@@ -340,7 +334,6 @@ const [data, setData] = useState<{
                 whileHover={{ y: -15 }}
                 className="group relative bg-white dark:bg-slate-900 p-10 rounded-[3rem] shadow-xl dark:shadow-2xl transition-all duration-500 border border-slate-200/50 dark:border-slate-800"
               >
-                {/* Animated Initial Box */}
                 <div className="relative mb-10">
                   <motion.div
                     animate={{ y: [0, -10, 0] }}
@@ -348,7 +341,7 @@ const [data, setData] = useState<{
                     className="w-20 h-20 bg-brand-green rounded-2xl flex items-center justify-center shadow-[0_20px_40px_rgba(0,0,0,0.2)] group-hover:bg-brand-yellow group-hover:rotate-12 transition-all duration-500"
                   >
                     <span className="text-4xl font-black text-white group-hover:text-brand-green uppercase">
-                      {m.name.charAt(0)}
+                      {m.name?.charAt(0) || ''}
                     </span>
                   </motion.div>
                 </div>
@@ -373,102 +366,94 @@ const [data, setData] = useState<{
         </div>
       </motion.section>
 
-      {/* --- FINAL CTA BANNER --- */}
-     {/* --- FINAL CTA BANNER: THE GRAND FINALE --- */}
-<motion.section 
-  className="relative z-40 -mb-4 max-w-7xl mx-auto px-6 py-12"
-  initial={{ opacity: 0, y: 50, scale: 0.95 }}
-  whileInView={{ opacity: 1, y: 0, scale: 1 }}
-  viewport={{ once: true }}
-  transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }} // Cinematic smooth ease
->
-  <div className="bg-brand-green dark:bg-brand-green/90 border border-white/10 shadow-[0_40px_80px_-15px_rgba(0,0,0,0.4)] rounded-[4rem] p-10 md:p-16 overflow-hidden relative group">
-    
-    {/* MOVIE LIGHT LEAK EFFECT (Animated Background) */}
-    <motion.div 
-      animate={{ 
-        scale: [1, 1.2, 1],
-        x: [0, 30, 0],
-        opacity: [0.2, 0.4, 0.2] 
-      }}
-      transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-      className="absolute -right-20 -top-20 w-[400px] h-[400px] bg-brand-yellow rounded-full blur-[120px] pointer-events-none"
-    />
-    
-    <motion.div 
-      animate={{ 
-        scale: [1, 1.3, 1],
-        x: [0, -20, 0],
-        opacity: [0.1, 0.3, 0.1] 
-      }}
-      transition={{ duration: 10, repeat: Infinity, ease: "linear", delay: 1 }}
-      className="absolute -left-20 -bottom-20 w-[300px] h-[300px] bg-white rounded-full blur-[100px] pointer-events-none"
-    />
+      {/* --- FINAL CTA BANNER: THE GRAND FINALE --- */}
+      <motion.section 
+        className="relative z-40 -mb-4 max-w-7xl mx-auto px-6 py-12"
+        initial={{ opacity: 0, y: 50, scale: 0.95 }}
+        whileInView={{ opacity: 1, y: 0, scale: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+      >
+        <div className="bg-brand-green dark:bg-brand-green/90 border border-white/10 shadow-[0_40px_80px_-15px_rgba(0,0,0,0.4)] rounded-[4rem] p-10 md:p-16 overflow-hidden relative group">
+          <motion.div 
+            animate={{ 
+              scale: [1, 1.2, 1],
+              x: [0, 30, 0],
+              opacity: [0.2, 0.4, 0.2] 
+            }}
+            transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+            className="absolute -right-20 -top-20 w-[400px] h-[400px] bg-brand-yellow rounded-full blur-[120px] pointer-events-none"
+          />
+          
+          <motion.div 
+            animate={{ 
+              scale: [1, 1.3, 1],
+              x: [0, -20, 0],
+              opacity: [0.1, 0.3, 0.1] 
+            }}
+            transition={{ duration: 10, repeat: Infinity, ease: "linear", delay: 1 }}
+            className="absolute -left-20 -bottom-20 w-[300px] h-[300px] bg-white rounded-full blur-[100px] pointer-events-none"
+          />
 
-    <div className="relative z-10 grid grid-cols-1 lg:grid-cols-4 gap-12 items-center text-white">
-      
-      {/* BRANDING COLUMN */}
-      <div className="lg:col-span-1 border-b lg:border-b-0 lg:border-r border-white/20 pb-8 lg:pb-0 lg:pr-8">
-        <motion.span 
-          initial={{ opacity: 0, x: -20 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.3 }}
-          className="text-brand-yellow font-black text-[10px] uppercase tracking-[0.4em] block mb-3"
-        >
-          Connect with us
-        </motion.span>
-        <h3 className="text-4xl md:text-5xl font-black uppercase tracking-tighter leading-[0.85]">
-          Let's Start <br />
-          <motion.span 
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 0.6 }}
-            className="text-brand-yellow bg-clip-text text-transparent bg-gradient-to-r from-brand-yellow to-white/80"
-          >
-            Planning.
-          </motion.span>
-        </h3>
-      </div>
+          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-4 gap-12 items-center text-white">
+            <div className="lg:col-span-1 border-b lg:border-b-0 lg:border-r border-white/20 pb-8 lg:pb-0 lg:pr-8">
+              <motion.span 
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 }}
+                className="text-brand-yellow font-black text-[10px] uppercase tracking-[0.4em] block mb-3"
+              >
+                Connect with us
+              </motion.span>
+              <h3 className="text-4xl md:text-5xl font-black uppercase tracking-tighter leading-[0.85]">
+                Let's Start <br />
+                <motion.span 
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  transition={{ duration: 1, delay: 0.6 }}
+                  className="text-brand-yellow bg-clip-text text-transparent bg-gradient-to-r from-brand-yellow to-white/80"
+                >
+                  Planning.
+                </motion.span>
+              </h3>
+            </div>
 
-      {/* INTERACTIVE MOVIE CONTACT CARDS */}
-      {[
-        { Icon: Mail, label: "Drop a line", val: settings?.email, delay: 0.2 },
-        { Icon: Phone, label: "Quick Call", val: settings?.phone_number, delay: 0.3 },
-        { Icon: MapPin, label: "Our Studio", val: settings?.address, delay: 0.4 },
-      ].map((item, idx) => (
-        <motion.div 
-          key={idx}
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: item.delay }}
-          whileHover={{ scale: 1.05, x: 5 }}
-          className="flex items-center gap-6 group cursor-pointer"
-        >
-          {/* Glass-morphic Icon Box */}
-          <div className="w-16 h-16 bg-white/10 backdrop-blur-xl border border-white/10 rounded-2xl flex items-center justify-center text-brand-yellow group-hover:bg-brand-yellow group-hover:text-brand-green transition-all duration-500 shadow-xl group-hover:shadow-brand-yellow/20">
-            <motion.div
-              whileHover={{ rotate: [0, -10, 10, 0] }}
-              transition={{ duration: 0.5 }}
-            >
-              <item.Icon size={28} />
-            </motion.div>
+            {[
+              { Icon: Mail, label: "Drop a line", val: settings?.email, delay: 0.2 },
+              { Icon: Phone, label: "Quick Call", val: settings?.phone_number, delay: 0.3 },
+              { Icon: MapPin, label: "Our Studio", val: settings?.address, delay: 0.4 },
+            ].map((item, idx) => (
+              <motion.div 
+                key={idx}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: item.delay }}
+                whileHover={{ scale: 1.05, x: 5 }}
+                className="flex items-center gap-6 group cursor-pointer"
+              >
+                <div className="w-16 h-16 bg-white/10 backdrop-blur-xl border border-white/10 rounded-2xl flex items-center justify-center text-brand-yellow group-hover:bg-brand-yellow group-hover:text-brand-green transition-all duration-500 shadow-xl group-hover:shadow-brand-yellow/20">
+                  <motion.div
+                    whileHover={{ rotate: [0, -10, 10, 0] }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    <item.Icon size={28} />
+                  </motion.div>
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-black uppercase text-white/40 tracking-widest mb-1 group-hover:text-brand-yellow/60 transition-colors">
+                    {item.label}
+                  </p>
+                  <p className="font-bold text-sm md:text-base group-hover:text-white transition-colors truncate">
+                    {item.val}
+                  </p>
+                  <div className="h-px w-0 group-hover:w-full bg-brand-yellow/50 transition-all duration-500 mt-1" />
+                </div>
+              </motion.div>
+            ))}
           </div>
-
-          <div className="flex-1 min-w-0">
-            <p className="text-[10px] font-black uppercase text-white/40 tracking-widest mb-1 group-hover:text-brand-yellow/60 transition-colors">
-              {item.label}
-            </p>
-            <p className="font-bold text-sm md:text-base group-hover:text-white transition-colors truncate">
-              {item.val}
-            </p>
-            {/* Animated Underline */}
-            <div className="h-px w-0 group-hover:w-full bg-brand-yellow/50 transition-all duration-500 mt-1" />
-          </div>
-        </motion.div>
-      ))}
-    </div>
-  </div>
-</motion.section>
+        </div>
+      </motion.section>
     </motion.div>
   );
 }
