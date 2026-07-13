@@ -4,8 +4,8 @@ import { supabase } from "@/utils/supabase";
 import {
   Users, Target, ArrowRight, Mail, Phone, MapPin, MessageCircle
 } from 'lucide-react';
-import { motion } from "framer-motion";
-import { Variants } from "framer-motion";
+import { motion, Variants } from "framer-motion";
+
 // --- CUSTOM SVG ICONS ---
 const InstagramIcon = ({ size = 24 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
@@ -16,7 +16,7 @@ const FacebookIcon = ({ size = 24 }) => (
 );
 
 // --- PAGE-WIDE ANIMATION VARIANTS ---
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -27,7 +27,7 @@ const containerVariants = {
   }
 };
 
-const heroTitleVariants = {
+const heroTitleVariants: Variants = {
   hidden: {
     opacity: 0,
     y: 100,
@@ -41,13 +41,13 @@ const heroTitleVariants = {
     rotateX: 0,
     transition: {
       duration: 1.2,
-      ease: [0.22, 1, 0.36, 1] as const,
+      ease: [0.22, 1, 0.36, 1],
       delay: 0.5
     }
   }
 };
 
-const cardVariants = {
+const cardVariants: Variants = {
   hidden: {
     opacity: 0,
     y: 80,
@@ -61,13 +61,13 @@ const cardVariants = {
     rotate: 0,
     transition: {
       duration: 0.7,
-      ease: [0.22, 1, 0.36, 1] as const,
+      ease: [0.22, 1, 0.36, 1],
       delay: 0.3 + i * 0.15
     }
   })
 };
 
-const heroSubtitleVariants = {
+const heroSubtitleVariants: Variants = {
   hidden: { opacity: 0, y: 50 },
   visible: {
     opacity: 1,
@@ -80,7 +80,7 @@ const heroSubtitleVariants = {
   }
 };
 
-const statsVariants = {
+const statsVariants: Variants = {
   hidden: { opacity: 0, scale: 0.5, y: 100 },
   visible: {
     opacity: 1,
@@ -88,13 +88,13 @@ const statsVariants = {
     y: 0,
     transition: {
       duration: 0.8,
-      ease: [0.68, -0.55, 0.265, 1.55] as const,
+      ease: [0.68, -0.55, 0.265, 1.55],
       delay: 0.2
     }
   }
 };
 
-const teamCardVariants = {
+const teamCardVariants: Variants = {
   hidden: {
     opacity: 0,
     x: -100,
@@ -106,13 +106,13 @@ const teamCardVariants = {
     rotateY: 0,
     transition: {
       duration: 0.9,
-      ease: [0.25, 0.46, 0.45, 0.94] as const,
+      ease: [0.25, 0.46, 0.45, 0.94],
       delay: 0.8 + i * 0.2
     }
   })
 };
 
-const staggerContainer = {
+const staggerContainer: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
