@@ -14,8 +14,7 @@ import {
   Moon, 
   LogOut, 
   Bookmark, 
-  Heart,
-  ChevronDown
+  Heart
 } from 'lucide-react';
 import { motion, AnimatePresence } from "framer-motion";
 import LoginModal from './LoginModal';
@@ -69,8 +68,6 @@ export default function Header() {
     { name: 'About Us', path: '/site/about' },
     { name: 'Contact', path: '/site/contact' },
   ];
-
-  if (!siteData || !mounted) return null;
 
   // Animation Variants
   const logoVariants = {
@@ -148,6 +145,26 @@ export default function Header() {
       transition: { duration: 0.15 }
     }
   };
+
+  // Render static skeleton matching layout dimensions during SSR/Loading to eliminate layout shifting
+  if (!siteData || !mounted) {
+    return (
+      <div className="w-full fixed top-0 z-[100] bg-white dark:bg-black border-b border-slate-100 dark:border-white/10 animate-pulse">
+        {/* Mock Top Bar */}
+        <div className="bg-brand-green h-10 w-full" />
+        {/* Mock Main Nav Bar */}
+        <div className="px-6 md:px-12 py-5 flex justify-between items-center max-w-[1400px] mx-auto">
+          <div className="h-12 w-36 bg-slate-200 dark:bg-zinc-800 rounded-xl" />
+          <div className="hidden lg:flex gap-8">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="h-4 w-14 bg-slate-200 dark:bg-zinc-800 rounded" />
+            ))}
+          </div>
+          <div className="h-12 w-32 bg-slate-200 dark:bg-zinc-800 rounded-3xl" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <header className="w-full fixed top-0 z-[100] transition-all duration-300">
@@ -448,7 +465,7 @@ export default function Header() {
           >
             {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
           </motion.button>
-                </motion.div>
+        </motion.div>
       </nav>
 
       <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
