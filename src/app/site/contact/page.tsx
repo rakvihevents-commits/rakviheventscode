@@ -8,11 +8,15 @@ import {
 } from 'lucide-react';
 
 // --- SHARED ANIMATION VARIANTS ---
+// --- TYPED FRAMER MOTION VARIANTS ---
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: {自動 staggersChildren: 0.1, delayChildren: 0.3 }
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.2
+    }
   }
 };
 
