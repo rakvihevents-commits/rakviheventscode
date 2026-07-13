@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 
 // --- TYPED FRAMER MOTION VARIANTS ---
+// --- TYPED FRAMER MOTION VARIANTS ---
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
