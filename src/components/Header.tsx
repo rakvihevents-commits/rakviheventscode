@@ -27,7 +27,7 @@ export default function Header() {
   const [mounted, setMounted] = useState(false);
   const [user, setUser] = useState<any>(null);
   const { resolvedTheme, setTheme } = useTheme();
-
+const MotionLink = motion(Link);
   useEffect(() => {
     setMounted(true);
     if (typeof window !== 'undefined' && window.location.hash.includes('access_token')) {
@@ -288,22 +288,18 @@ export default function Header() {
               }
             }}
           >
-            {navLinks.map((link, i) => (
-              <motion.div key={link.name} custom={i} variants={navLinkVariants}>
-                <Link 
-                  href={link.path} 
-                  className="group relative text-[11px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-zinc-400 hover:text-brand-green dark:hover:text-brand-yellow transition-all duration-300"
-                >
-                  <span>{link.name}</span>
-                  <motion.span 
-                    className="absolute -bottom-2 left-0 w-0 h-0.5 bg-gradient-to-r from-brand-yellow to-brand-green rounded-full origin-left"
-                    initial={{ scaleX: 0 }}
-                    whileHover={{ scaleX: 1 }}
-                    transition={{ duration: 0.4, ease: "easeOut" }}
-                  />
-                </Link>
-              </motion.div>
-            ))}
+  {navLinks.map((link, i) => (
+  <motion.div key={link.name} custom={i}>
+    <MotionLink 
+      href={link.path} 
+      onClick={() => setMobileMenuOpen(false)}
+      className="block text-5xl lg:text-6xl font-black uppercase tracking-tighter text-black dark:text-white py-6 px-8 rounded-3xl bg-white/50 dark:bg-black/30 backdrop-blur-xl border border-slate-200/50 dark:border-white/10 hover:bg-brand-green hover:text-white hover:border-brand-green transition-all duration-300 shadow-xl hover:shadow-brand-green/20"
+      whileTap={{ scale: 0.98 }}
+    >
+      {link.name}
+    </MotionLink>
+  </motion.div>
+))}
 
             {/* THEME TOGGLE */}
             <motion.button 
@@ -485,18 +481,21 @@ export default function Header() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
-              {navLinks.map((link, i) => (
-                <motion.div key={link.name} custom={i}>
-                  <Link 
-                    href={link.path} 
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="block text-5xl lg:text-6xl font-black uppercase tracking-tighter text-black dark:text-white py-6 px-8 rounded-3xl bg-white/50 dark:bg-black/30 backdrop-blur-xl border border-slate-200/50 dark:border-white/10 hover:bg-brand-green hover:text-white hover:border-brand-green transition-all duration-300 shadow-xl hover:shadow-brand-green/20"
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    {link.name}
-                  </Link>
-                </motion.div>
-              ))}
+{navLinks.map((link, i) => (
+  <motion.div 
+    key={link.name} 
+    custom={i}
+    whileTap={{ scale: 0.98 }} /* Handled safely by motion.div */
+  >
+    <Link 
+      href={link.path} 
+      onClick={() => setMobileMenuOpen(false)}
+      className="block text-5xl lg:text-6xl font-black uppercase tracking-tighter text-black dark:text-white py-6 px-8 rounded-3xl bg-white/50 dark:bg-black/30 backdrop-blur-xl border border-slate-200/50 dark:border-white/10 hover:bg-brand-green hover:text-white hover:border-brand-green transition-all duration-300 shadow-xl hover:shadow-brand-green/20"
+    >
+      {link.name}
+    </Link>
+  </motion.div>
+))}
             </motion.div>
 
             {/* AUTH SECTION MOBILE */}
