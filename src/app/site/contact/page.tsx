@@ -2,21 +2,21 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from "@/utils/supabase";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 import { 
   Mail, Phone, MapPin, Send, Sparkles, Loader2, CheckCircle2, XCircle, ArrowRight 
 } from 'lucide-react';
 
-// --- SHARED ANIMATION VARIANTS (from your About page) ---
-const containerVariants = {
+// --- SHARED ANIMATION VARIANTS ---
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.1, delayChildren: 0.3 }
+    transition: {自動 staggersChildren: 0.1, delayChildren: 0.3 }
   }
 };
 
-const heroTitleVariants = {
+const heroTitleVariants: Variants = {
   hidden: { opacity: 0, y: 100, scale: 0.8, rotateX: -90 },
   visible: {
     opacity: 1, y: 0, scale: 1, rotateX: 0,
@@ -24,7 +24,7 @@ const heroTitleVariants = {
   }
 };
 
-const cardVariants = {
+const cardVariants: Variants = {
   hidden: { opacity: 0, y: 80, scale: 0.9, rotate: -5 },
   visible: (i: number) => ({
     opacity: 1, y: 0, scale: 1, rotate: 0,
@@ -32,7 +32,7 @@ const cardVariants = {
   })
 };
 
-const staggerContainer = {
+const staggerContainer: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -181,7 +181,7 @@ export default function ContactPage() {
               transition={{ delay: 0.9 }}
             >
               {[siteData.instagram_url, siteData.facebook_url].map((url, i) => url && (
-                <a key={i} href={url} target="_blank" className="px-6 py-3 bg-white/5 border border-white/10 rounded-full text-white font-bold text-[10px] uppercase tracking-widest hover:bg-brand-yellow hover:text-brand-green transition-all duration-300">
+                <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="px-6 py-3 bg-white/5 border border-white/10 rounded-full text-white font-bold text-[10px] uppercase tracking-widest hover:bg-brand-yellow hover:text-brand-green transition-all duration-300">
                   {i === 0 ? "Instagram" : "Facebook"}
                 </a>
               ))}

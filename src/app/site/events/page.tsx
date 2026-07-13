@@ -1,10 +1,9 @@
 "use client";
-import React, { useEffect, useState, useRef } from 'react'; // Added useRef here
+
+import React, { useEffect, useState, useRef } from 'react';
 import { supabase } from "@/utils/supabase";
-// Import useInView here
-import { motion, AnimatePresence, useAnimation, useInView } from "framer-motion"; 
+import { motion, AnimatePresence, useAnimation, useInView, Variants } from "framer-motion"; 
 import { 
-  Filter, 
   ArrowRight, 
   CheckCircle2, 
   Heart,
@@ -27,9 +26,77 @@ interface Event {
   services_included: string[];
 }
 
+// --- TYPED ANIMATION VARIANTS ---
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.2
+    }
+  }
+};
+
+const itemVariants: Variants = {
+  hidden: { 
+    opacity: 0, 
+    y: 50,
+    scale: 0.8 
+  },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.6,
+      ease: [0.22, 1, 0.36, 1],
+      delay: i * 0.1
+    }
+  }),
+  exit: {
+    opacity: 0,
+    scale: 0.9,
+    y: -20,
+    transition: { duration: 0.3 }
+  }
+};
+
+const heroVariants: Variants = {
+  hidden: { opacity: 0, y: -50 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 1,
+      ease: "easeOut"
+    }
+  }
+};
+
+const heartVariants: Variants = {
+  initial: { scale: 1, rotate: 0 },
+  liked: {
+    scale: [1, 1.3, 1.1],
+    rotate: [0, 360],
+    fill: "#ef4444",
+    transition: {
+      duration: 0.4,
+      ease: "easeOut"
+    }
+  },
+  unliked: {
+    scale: [1.1, 1],
+    rotate: [-360, 0],
+    transition: {
+      duration: 0.3
+    }
+  }
+};
+
 export default function EventsPage() {
-  const containerRef = useRef(null); // 1. Create a ref
-  const inView = useInView(containerRef, { once: true, amount: 0.2 }); // 2. Pass ref as first arg
+  const containerRef = useRef(null);
+  const inView = useInView(containerRef, { once: true, amount: 0.2 });
   const [events, setEvents] = useState<Event[]>([]);
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
@@ -41,7 +108,6 @@ export default function EventsPage() {
   const [wishlistIds, setWishlistIds] = useState<string[]>([]);
   const [toast, setToast] = useState<{show: boolean, msg: string} | null>(null);
   
-  // Animation controls
   const controls = useAnimation();
 
   useEffect(() => {
@@ -60,7 +126,6 @@ export default function EventsPage() {
     }
   }, [inView, controls]);
 
-  // Show toast for 3 seconds
   useEffect(() => {
     if (toast?.show) {
       const timer = setTimeout(() => setToast(null), 3000);
@@ -85,7 +150,6 @@ export default function EventsPage() {
     setLoading(false);
   };
 
-  // Unified Filter, Search, and Sort Logic
   useEffect(() => {
     let result = [...events];
 
@@ -119,87 +183,6 @@ export default function EventsPage() {
     } else {
       const { error } = await supabase.from('wishlist').insert({ user_id: user.id, event_id: eventId });
       if (!error) setWishlistIds(prev => [...prev, eventId]);
-    }
-  };
-
-  // Animation Variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { 
-      opacity: 0, 
-      y: 50,
-      scale: 0.8 
-    },
-    visible: (i: number) => ({
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      transition: {
-        duration: 0.6,
-        ease: [0.22, 1, 0.36, 1],
-        delay: i * 0.1
-      }
-    }),
-    exit: {
-      opacity: 0,
-      scale: 0.9,
-      y: -20,
-      transition: { duration: 0.3 }
-    }
-  };
-
-  const heroVariants = {
-    hidden: { opacity: 0, y: -50 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 1,
-        ease: "easeOut"
-      }
-    }
-  };
-
-  const cardHoverVariants = {
-    hover: {
-      y: -10,
-      scale: 1.02,
-      boxShadow: "0 25px 50px -12px rgba(0, 0,0, 0.25)",
-      transition: {
-        type: "spring",
-        stiffness: 300,
-        damping: 20
-      }
-    }
-  };
-
-  const heartVariants = {
-    initial: { scale: 1, rotate: 0 },
-    liked: {
-      scale: [1, 1.3, 1.1],
-      rotate: [0, 360],
-      fill: "#ef4444",
-      transition: {
-        duration: 0.4,
-        ease: "easeOut"
-      }
-    },
-    unliked: {
-      scale: [1.1, 1],
-      rotate: [-360, 0],
-      transition: {
-        duration: 0.3
-      }
     }
   };
 
@@ -303,7 +286,6 @@ export default function EventsPage() {
             <motion.div 
               className="relative flex-1 max-w-md group"
               whileHover={{ scale: 1.02 }}
-              whileFocus={{ scale: 1.02 }}
             >
               <motion.div 
                 className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-green transition-colors"
@@ -375,12 +357,12 @@ export default function EventsPage() {
                 custom={i}
                 variants={{
                   hidden: { opacity: 0, scale: 0.8, y: 20 },
-                  visible: (i: number) => ({
+                  visible: (idx: number) => ({
                     opacity: 1,
                     scale: 1,
                     y: 0,
                     transition: {
-                      delay: i * 0.05
+                      delay: idx * 0.05
                     }
                   })
                 }}
@@ -449,7 +431,16 @@ export default function EventsPage() {
                   initial="hidden"
                   animate="visible"
                   exit="exit"
-                  whileHover="hover"
+                  whileHover={{
+                    y: -10,
+                    scale: 1.02,
+                    boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+                    transition: {
+                      type: "spring",
+                      stiffness: 300,
+                      damping: 20
+                    }
+                  }}
                   viewport={{ once: true, amount: 0.3 }}
                   className="group bg-white dark:bg-zinc-900 rounded-[2.5rem] overflow-hidden border border-slate-100 dark:border-zinc-800 relative"
                 >
@@ -479,7 +470,7 @@ export default function EventsPage() {
                       whileHover={{ scale: 1.1 }}
                       transition={{ duration: 0.6, ease: "easeOut" }}
                     />
-                                        <motion.div
+                    <motion.div
                       className="absolute top-5 left-5 bg-brand-green/90 backdrop-blur-md px-4 py-1 rounded-full text-[9px] font-black uppercase text-brand-yellow"
                       initial={{ scale: 0, rotate: -180 }}
                       animate={{ scale: 1, rotate: 0 }}

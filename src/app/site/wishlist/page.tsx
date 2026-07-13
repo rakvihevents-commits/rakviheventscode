@@ -1,8 +1,9 @@
 "use client";
+
 import React, { useEffect, useState, useRef } from 'react';
 import { supabase } from "@/utils/supabase";
 import Link from 'next/link';
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 import { 
   Trash2, 
   ArrowRight, 
@@ -10,6 +11,87 @@ import {
   ChevronLeft,
   Heart
 } from 'lucide-react';
+
+// --- TYPED FRAMER MOTION VARIANTS ---
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.2
+    }
+  }
+};
+
+const itemVariants: Variants = {
+  hidden: { 
+    opacity: 0, 
+    y: 50,
+    scale: 0.8 
+  },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.6,
+      ease: [0.22, 1, 0.36, 1],
+      delay: i * 0.1
+    }
+  }),
+  exit: {
+    opacity: 0,
+    scale: 0.9,
+    y: -30,
+    rotateX: 90,
+    transition: { duration: 0.4 }
+  }
+};
+
+const cardHoverVariants: Variants = {
+  hover: {
+    y: -12,
+    scale: 1.03,
+    boxShadow: "0 30px 60px -15px rgba(0, 0, 0, 0.3)",
+    transition: {
+      type: "spring",
+      stiffness: 300,
+      damping: 20
+    }
+  }
+};
+
+const trashVariants: Variants = {
+  hover: {
+    scale: 1.15,
+    rotate: 10,
+    backgroundColor: "#ef4444",
+    boxShadow: "0 8px 25px rgba(239, 68, 68, 0.4)"
+  },
+  tap: {
+    scale: 0.95,
+    rotate: 5
+  }
+};
+
+const servicesContainerVariants: Variants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const serviceItemVariants: Variants = {
+  hidden: { opacity: 0, x: -20 },
+  visible: (idx: number) => ({
+    opacity: 1,
+    x: 0,
+    transition: { delay: idx * 0.1 }
+  })
+};
 
 export default function WishlistPage() {
   const [wishlistItems, setWishlistItems] = useState<any[]>([]);
@@ -68,69 +150,6 @@ export default function WishlistPage() {
     const { error } = await supabase.from('wishlist').delete().eq('id', wishlistId);
     if (!error) {
       setWishlistItems(prev => prev.filter(item => item.id !== wishlistId));
-    }
-  };
-
-  // Animation Variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { 
-      opacity: 0, 
-      y: 50,
-      scale: 0.8 
-    },
-    visible: (i: number) => ({
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      transition: {
-        duration: 0.6,
-        ease: [0.22, 1, 0.36, 1],
-        delay: i * 0.1
-      }
-    }),
-    exit: {
-      opacity: 0,
-      scale: 0.9,
-      y: -30,
-      rotateX: 90,
-      transition: { duration: 0.4 }
-    }
-  };
-
-  const cardHoverVariants = {
-    hover: {
-      y: -12,
-      scale: 1.03,
-      boxShadow: "0 30px 60px -15px rgba(0, 0,0, 0.3)",
-      transition: {
-        type: "spring",
-        stiffness: 300,
-        damping: 20
-      }
-    }
-  };
-
-  const trashVariants = {
-    hover: {
-      scale: 1.15,
-      rotate: 10,
-      backgroundColor: "#ef4444",
-      boxShadow: "0 8px 25px rgba(239, 68, 68, 0.4)"
-    },
-    tap: {
-      scale: 0.95,
-      rotate: 5
     }
   };
 
@@ -328,27 +347,14 @@ export default function WishlistPage() {
                           className="flex flex-wrap gap-2 mb-8"
                           initial="hidden"
                           animate="visible"
-                          variants={{
-                            hidden: {},
-                            visible: {
-                              transition: {
-                                staggerChildren: 0.1
-                              }
-                            }
-                          }}
+                          variants={servicesContainerVariants}
                         >
                           {event.services_included?.slice(0, 2).map((service: string, idx: number) => (
                             <motion.div 
                               key={idx}
                               className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest text-slate-400"
-                              variants={{
-                                hidden: { opacity: 0, x: -20 },
-                                visible: {
-                                  opacity: 1,
-                                  x: 0,
-                                  transition: { delay: idx * 0.1 }
-                                }
-                              }}
+                              variants={serviceItemVariants}
+                              custom={idx}
                               whileHover={{ x: 5, scale: 1.05 }}
                             >
                               <motion.div

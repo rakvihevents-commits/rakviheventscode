@@ -2,11 +2,11 @@
 
 import React, { useEffect, useState } from 'react';
 import { supabase } from "@/utils/supabase";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 import { Maximize2, X, Play, Sparkles } from 'lucide-react';
 
-// --- SHARED BRAND ANIMATIONS ---
-const containerVariants = {
+// --- SHARED BRAND ANIMATIONS (TYPED) ---
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -14,7 +14,7 @@ const containerVariants = {
   }
 };
 
-const heroTitleVariants = {
+const heroTitleVariants: Variants = {
   hidden: { opacity: 0, y: 100, scale: 0.8, rotateX: -90 },
   visible: {
     opacity: 1, y: 0, scale: 1, rotateX: 0,
@@ -22,7 +22,7 @@ const heroTitleVariants = {
   }
 };
 
-const gridItemVariants = {
+const gridItemVariants: Variants = {
   hidden: { opacity: 0, y: 50, scale: 0.9, rotateX: 15 },
   visible: (i: number) => ({
     opacity: 1, y: 0, scale: 1, rotateX: 0,
