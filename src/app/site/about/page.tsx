@@ -125,12 +125,17 @@ const staggerContainer = {
 
 export default function AboutUsPage() {
   const [settings, setSettings] = useState<any>(null);
-  const [data, setData] = useState({
-    story: '',
-    mission: '',
-    team: [],
-    stats: []
-  });
+const [data, setData] = useState<{
+  story: string;
+  mission: string;
+  team: any[];
+  stats: any[];
+}>({
+  story: '',
+  mission: '',
+  team: [],
+  stats: []
+});
 
   useEffect(() => {
     const fetchAll = async () => {
