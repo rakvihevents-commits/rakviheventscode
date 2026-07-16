@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import Razorpay from "razorpay";
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_KEY_SECRET!,
-});
+// Move initialization inside a helper function so it only runs when a request comes in
+function getRazorpayInstance() {
+  const key_id = process.env.RAZORPAY_KEY_ID;
+  const key_secret = process.env.RAZORPAY_KEY_SECRET;
+
+  if (!key_id || !key_secret) {
+    throw new Error("Missing Razorpay Environment Variables: RAZORPAY_KEY_ID or RAZORPAY_KEY_SECRET");
+  }
+
+  return new Razorpay({ key_id, key_secret });
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,6 +21,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
     }
 
+    // Initialize dynamically per-request
+    const razorpay = getRazorpayInstance();
+
     const order = await razorpay.orders.create({
       amount: Math.round(amount * 100), // Razorpay expects paise
       currency: "INR",
@@ -22,9 +32,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(order);
   } catch (err: any) {
-    // ✅ Razorpay's SDK rejects with { statusCode, error: { code, description } },
-    // not a plain Error — err.message is usually undefined, which is why you
-    // were only ever seeing the generic fallback string.
     console.error("Razorpay order creation failed:", JSON.stringify(err, null, 2));
     const description = err?.error?.description || err?.message || "Order creation failed";
     return NextResponse.json({ error: description }, { status: 500 });
