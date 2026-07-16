@@ -15,7 +15,9 @@ import {
   Moon,
   LogOut,
   Bookmark,
-  Heart
+  Heart,
+  Radio,
+  CalendarDays
 } from 'lucide-react';
 import LoginModal from './LoginModal';
 
@@ -26,6 +28,11 @@ export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [user, setUser] = useState<any>(null);
+
+  // States to keep track of event availability
+  const [hasLiveEvents, setHasLiveEvents] = useState(false);
+  const [hasUpcomingEvents, setHasUpcomingEvents] = useState(false);
+
   const { resolvedTheme, setTheme } = useTheme();
   const MotionLink = motion(Link);
 
@@ -36,10 +43,33 @@ export default function Header() {
     }
 
     const initializeHeader = async () => {
+      // 1. Fetch site settings
       const { data: settings } = await supabase.from('site_settings').select('*').eq('id', 1).single();
       if (settings) setSiteData(settings);
+
+      // 2. Check User Session
       const { data: { session } } = await supabase.auth.getSession();
       setUser(session?.user ?? null);
+
+      // 3. Query counts to conditionally show Live vs Upcoming event status
+      const now = new Date().toISOString();
+
+      // Live query: Event status is 'Active', starts in past/now, and end_date is in future (or null)
+      const { count: liveCount } = await supabase
+        .from('live_events')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'Active')
+        .lte('start_date', now);
+
+      // Upcoming query: Starts in the future
+      const { count: upcomingCount } = await supabase
+        .from('live_events')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'Active')
+        .gt('start_date', now);
+
+      setHasLiveEvents((liveCount ?? 0) > 0);
+      setHasUpcomingEvents((upcomingCount ?? 0) > 0);
     };
 
     initializeHeader();
@@ -62,8 +92,21 @@ export default function Header() {
     window.location.reload();
   };
 
+  // Upgraded Nav Links containing path-specific queries for filtering inside your event pages
   const navLinks = [
     { name: 'Home', path: '/' },
+    {
+      name: 'Live Events',
+      path: '/site/events/live',
+      isLiveTab: true,
+      active: hasLiveEvents
+    },
+    {
+      name: 'Upcoming',
+      path: '/site/events?filter=upcoming',
+      isUpcomingTab: true,
+      active: hasUpcomingEvents
+    },
     { name: 'Events', path: '/site/events' },
     { name: 'Gallery', path: '/site/gallery' },
     { name: 'About Us', path: '/site/about' },
@@ -106,15 +149,15 @@ export default function Header() {
     exit: { opacity: 0, scale: 0.97, y: -6, transition: { duration: 0.12 } }
   };
 
-  // ---------- Loading skeleton (matches final layout to avoid CLS) ----------
+  // ---------- Loading skeleton ----------
   if (!siteData || !mounted) {
     return (
       <div className="w-full fixed top-0 z-[100] bg-white dark:bg-black border-b border-slate-100 dark:border-white/10 animate-pulse">
         <div className="bg-brand-green h-9 w-full" />
         <div className="px-6 md:px-12 py-3.5 flex justify-between items-center max-w-[1400px] mx-auto">
-          <div className="h-10 w-32 bg-slate-200 dark:bg-zinc-800 rounded-lg" />
+          <div className="h-10 w-40 bg-slate-200 dark:bg-zinc-800 rounded-lg" />
           <div className="hidden lg:flex gap-2">
-            {[1, 2, 3, 4, 5].map((i) => (
+            {[1, 2, 3, 4, 5, 6].map((i) => (
               <div key={i} className="h-9 w-20 bg-slate-200 dark:bg-zinc-800 rounded-full" />
             ))}
           </div>
@@ -160,38 +203,29 @@ export default function Header() {
 
       {/* MAIN NAVIGATION */}
       <nav
-        className={`px-6 md:px-12 transition-all duration-300 border-b ${
-          isScrolled
-            ? 'bg-white/95 dark:bg-black/95 backdrop-blur-xl shadow-md py-2.5 border-slate-200 dark:border-white/10'
-            : 'bg-white dark:bg-black py-4 border-slate-100 dark:border-white/5'
-        }`}
+        className={`px-6 md:px-12 transition-all duration-300 border-b ${isScrolled
+            ? 'bg-white/95 dark:bg-black/95 backdrop-blur-xl shadow-md py-2 border-slate-200 dark:border-white/10'
+            : 'bg-white dark:bg-black py-3 border-slate-100 dark:border-white/5'
+          }`}
       >
         <div className="max-w-[1400px] mx-auto flex items-center justify-between gap-6">
 
           {/* LOGO */}
           <motion.div variants={logoVariants} initial="initial" animate="animate">
-            <Link href="/" className="flex items-center gap-3 group shrink-0">
+            <Link href="/" className="flex items-center group shrink-0">
               {siteData.logo_url && (
-                <div className="w-10 h-10 rounded-lg bg-brand-green/5 flex items-center justify-center overflow-hidden">
+                <div className="h-10 sm:h-12 md:h-14 w-auto flex items-center justify-center overflow-hidden">
                   <img
                     src={siteData.logo_url}
-                    alt="Logo"
-                    className="w-8 h-8 object-contain"
+                    alt="Rakvih Solutions Private Limited Logo"
+                    className="h-full w-auto object-contain dark:invert-[0.1]"
                   />
                 </div>
               )}
-              <div className="flex flex-col leading-tight">
-                <span className="text-lg font-black text-black dark:text-white tracking-tight uppercase">
-                  {siteData.site_name}<span className="text-brand-yellow">.</span>
-                </span>
-                <span className="text-[9px] font-bold text-brand-green uppercase tracking-widest">
-                  {siteData.tag_line}
-                </span>
-              </div>
             </Link>
           </motion.div>
 
-          {/* DESKTOP NAV — compact pill tabs */}
+          {/* DESKTOP NAV — compact pill tabs with interactive states */}
           <div className="hidden lg:flex items-center gap-1 bg-slate-50 dark:bg-zinc-900 p-1 rounded-full border border-slate-100 dark:border-white/5">
             {navLinks.map((link, i) => (
               <motion.div
@@ -200,13 +234,26 @@ export default function Header() {
                 variants={navLinkVariants}
                 initial="initial"
                 animate="animate"
+                className="relative"
               >
                 <MotionLink
                   href={link.path}
-                  className="block text-[12px] font-bold uppercase tracking-wide text-slate-600 dark:text-zinc-300 px-4 py-2 rounded-full hover:bg-brand-green hover:text-white transition-colors duration-200"
+                  className={`flex items-center gap-1.5 text-[12px] font-bold uppercase tracking-wide px-4 py-2 rounded-full transition-all duration-200 ${link.isLiveTab && link.active
+                      ? 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30'
+                      : 'text-slate-600 dark:text-zinc-300 hover:bg-brand-green hover:text-white'
+                    }`}
                   whileTap={{ scale: 0.96 }}
                 >
-                  {link.name}
+                  {/* Custom Iconography for Live / Upcoming states */}
+                  {link.isLiveTab && (
+                    <span className="relative flex h-2 w-2">
+                      <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${link.active ? 'bg-red-500' : 'bg-slate-400'}`}></span>
+                      <span className={`relative inline-flex rounded-full h-2 w-2 ${link.active ? 'bg-red-600' : 'bg-slate-400'}`}></span>
+                    </span>
+                  )}
+                  {link.isUpcomingTab && <CalendarDays size={12} className={link.active ? "text-blue-500" : "text-slate-400"} />}
+
+                  <span>{link.name}</span>
                 </MotionLink>
               </motion.div>
             ))}
@@ -344,9 +391,18 @@ export default function Header() {
                   key={link.name}
                   href={link.path}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="block text-2xl font-black uppercase tracking-tight text-black dark:text-white py-4 px-5 rounded-2xl bg-slate-50 dark:bg-zinc-900 hover:bg-brand-green hover:text-white transition-colors"
+                  className={`flex items-center justify-between text-2xl font-black uppercase tracking-tight py-4 px-5 rounded-2xl transition-colors ${link.isLiveTab && link.active
+                      ? 'bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400'
+                      : 'bg-slate-50 dark:bg-zinc-900 text-black dark:text-white hover:bg-brand-green hover:text-white'
+                    }`}
                 >
-                  {link.name}
+                  <span>{link.name}</span>
+                  {link.isLiveTab && link.active && (
+                    <span className="flex h-3 w-3 relative">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span>
+                    </span>
+                  )}
                 </Link>
               ))}
             </div>

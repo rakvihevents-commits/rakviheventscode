@@ -42,18 +42,21 @@ export default function Footer() {
 
                     {/* BRAND COLUMN */}
                     <div className="md:col-span-4 space-y-6">
-                        <div className="flex items-center gap-4">
-                            {siteData.logo_url && (
-                                <img src={siteData.logo_url} alt="Logo" className="w-12 h-12 object-contain" />
-                            )}
-                            <h2 className="text-2xl font-black tracking-tighter uppercase">{siteData.site_name}</h2>
-                        </div>
+                        {siteData.logo_url && (
+                            <div className="h-10 sm:h-12 md:h-14 w-auto flex items-center justify-start overflow-hidden">
+                                <img 
+                                    src={siteData.logo_url} 
+                                    alt="Rakvih Solutions Private Limited Logo" 
+                                    className="h-full w-auto object-contain bg-white rounded-lg p-1.5" 
+                                />
+                            </div>
+                        )}
+                        
                         <p className="text-slate-400 text-sm font-medium leading-relaxed max-w-xs">
                             {siteData.description || "Crafting premium experiences and unforgettable moments."}
                         </p>
 
                         {/* SOCIAL LINKS (Using Generic Icons) */}
-                        {/* SOCIAL LINKS (Using Direct SVGs) */}
                         <div className="flex gap-4 pt-4">
                             {siteData.instagram_url && (
                                 <a
@@ -101,7 +104,6 @@ export default function Footer() {
                                     className="w-11 h-11 bg-white/5 rounded-xl flex items-center justify-center hover:bg-emerald-600 transition-all group"
                                     aria-label="WhatsApp"
                                 >
-                                    {/* Reusing MessageSquare for WhatsApp consistency */}
                                     <MessageSquare size={20} className="group-hover:scale-110 transition-transform" />
                                 </a>
                             )}

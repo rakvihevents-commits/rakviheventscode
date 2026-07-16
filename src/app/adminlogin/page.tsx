@@ -67,19 +67,26 @@ export default function AdminLogin() {
         <div className="text-center mb-10">
           <div className="flex justify-center mb-6">
             {branding.logo ? (
-              <div className="w-20 h-20 rounded-3xl overflow-hidden bg-slate-50 p-2 border border-slate-100 shadow-sm">
-                <img src={branding.logo} alt="Logo" className="w-full h-full object-contain" />
+              /* Optimized container to naturally fit the wide branding logo */
+              <div className="h-14 sm:h-16 w-auto flex items-center justify-center overflow-hidden">
+                <img 
+                  src={branding.logo} 
+                  alt="Rakvih Solutions Private Limited Logo" 
+                  className="h-full w-auto object-contain" 
+                />
               </div>
             ) : (
-              <div className="w-16 h-16 bg-black rounded-2xl flex items-center justify-center text-white shadow-xl shadow-black/20">
-                <ShieldCheck size={32} />
+              <div className="flex flex-col items-center">
+                <div className="w-16 h-16 bg-black rounded-2xl flex items-center justify-center text-white shadow-xl shadow-black/20 mb-4">
+                  <ShieldCheck size={32} />
+                </div>
+                <h1 className="text-3xl font-black text-black tracking-tighter uppercase">
+                  {branding.name}
+                </h1>
               </div>
             )}
           </div>
           
-          <h1 className="text-3xl font-black text-black tracking-tighter uppercase">
-            {branding.name}
-          </h1>
           <p className="text-[10px] text-slate-400 mt-2 font-bold uppercase tracking-[0.4em]">
             Secure Admin Gateway
           </p>

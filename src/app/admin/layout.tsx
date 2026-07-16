@@ -7,7 +7,7 @@ import {
   LogOut, Menu, X, User, Camera, AppWindow, Info
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-
+import { Radio, CalendarDays } from 'lucide-react';
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   const [siteData, setSiteData] = useState({ name: '', logo: '' });
@@ -37,14 +37,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: 'Dashboard', icon: <LayoutDashboard size={18} />, path: '/admin/dashboard' },
     { name: 'Categories', icon: <Layers size={18} />, path: '/admin/categories' },
     { name: 'Events', icon: <Calendar size={18} />, path: '/admin/events' },
-    { name: 'Bookings', icon: <BookOpen size={18} />, path: '/admin/bookings' },
+{ name: 'Live Now', icon: <Radio size={18} className="text-emerald-500 animate-pulse" />, path: '/admin/events/live' },
+{ name: 'Upcoming Events', icon: <CalendarDays size={18} />, path: '/admin/events/upcoming' },
+  { name: 'Bookings', icon: <BookOpen size={18} />, path: '/admin/bookings' },
     { name: 'Users', icon: <Users size={18} />, path: '/admin/users' },
     { name: 'About Us', icon: <Info size={18} />, path: '/admin/about-us' },
     { name: 'Home Banner', icon: <AppWindow size={18} />, path: '/admin/home-banner' },
     { name: 'Instagram', icon: <Camera size={18} />, path: '/admin/instagram' },
     { name: 'Gallery', icon: <ImageIcon size={18} />, path: '/admin/gallery' },
     { name: 'Reviews', icon: <MessageSquare size={18} />, path: '/admin/reviews' },
-   // { name: 'Reports', icon: <BarChart3 size={18} />, path: '/admin/reports' },
+    // { name: 'Reports', icon: <BarChart3 size={18} />, path: '/admin/reports' },
     { name: 'Settings', icon: <Settings size={18} />, path: '/admin/settings' },
   ];
 
@@ -61,28 +63,40 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Dynamic Logo Section */}
         <div className="p-4 flex items-center justify-between border-b border-slate-100 min-h-[80px]">
           {isSidebarOpen ? (
-            <div className="flex items-center gap-3 animate-in fade-in duration-500">
-              <div className="w-8 h-8 rounded-lg overflow-hidden bg-slate-50 flex items-center justify-center border border-slate-100">
-                {siteData.logo ? (
-                  <img src={siteData.logo} alt="Logo" className="w-full h-full object-contain p-1" />
-                ) : (
-                  <div className="bg-black text-white w-full h-full flex items-center justify-center font-black text-sm">
-                    {siteData.name[0] || 'A'}
-                  </div>
-                )}
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-black text-black tracking-tight truncate w-32">
-                  {loading ? '...' : siteData.name}
-                </span>
-                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Admin</span>
-              </div>
+            <div className="flex items-center w-full pr-6 animate-in fade-in duration-500">
+              {siteData.logo ? (
+                <div className="h-10 w-auto flex items-center justify-start overflow-hidden">
+                  <img 
+                    src={siteData.logo} 
+                    alt="Rakvih Solutions Private Limited Logo" 
+                    className="h-full w-auto object-contain" 
+                  />
+                </div>
+              ) : (
+                <div className="flex flex-col">
+                  <span className="text-sm font-black text-black tracking-tight truncate w-32">
+                    {loading ? '...' : siteData.name}
+                  </span>
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Admin</span>
+                </div>
+              )}
             </div>
           ) : (
             <div className="mx-auto flex items-center justify-center w-full">
-              <div className="w-10 h-10 rounded-xl bg-black flex items-center justify-center text-white font-black text-lg shadow-sm">
-                {siteData.name ? siteData.name[0] : 'R'}
-              </div>
+              {siteData.logo ? (
+                /* Focused crop of the logo's main icon mark when sidebar is collapsed */
+                <div className="w-10 h-10 rounded-xl overflow-hidden bg-slate-50 border border-slate-100 flex items-center justify-center p-0.5">
+                  <img 
+                    src={siteData.logo} 
+                    alt="Logo Icon" 
+                    className="h-full max-w-none object-cover scale-150 -translate-x-[2px]" 
+                  />
+                </div>
+              ) : (
+                <div className="w-10 h-10 rounded-xl bg-black flex items-center justify-center text-white font-black text-lg shadow-sm">
+                  {siteData.name ? siteData.name[0] : 'R'}
+                </div>
+              )}
             </div>
           )}
           
@@ -132,7 +146,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* MAIN CONTENT AREA */}
       <div className={`flex-1 flex flex-col ${isSidebarOpen ? 'ml-64' : 'ml-20'} transition-all duration-300`}>
-        {/* HEADER & CONTENT REMAIN SAME */}
+        {/* HEADER */}
         <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 sticky top-0 z-40">
            <div className="flex items-center gap-3">
              <div className="h-2 w-2 bg-emerald-500 rounded-full animate-pulse" />
@@ -140,7 +154,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                {siteData.name} <span className="text-slate-300 font-light mx-1">/</span> <span className="text-slate-400">Command Center</span>
              </h2>
            </div>
-           {/* ... rest of header ... */}
+           
            <div className="flex items-center gap-4">
              <button onClick={handleLogout} className="p-2 text-slate-400 hover:text-red-600 transition-colors">
                 <LogOut size={18} />
