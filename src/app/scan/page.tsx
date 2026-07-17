@@ -69,7 +69,7 @@ export default function ScannerPage() {
       setAuthError("Incorrect password");
       return;
     }
-    sessionStorage.setItem(SESSION_KEY) === "1";
+    sessionStorage.setItem(SESSION_KEY, "1");
     setAuthed(true);
   };
 
