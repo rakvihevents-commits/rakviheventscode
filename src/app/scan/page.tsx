@@ -11,6 +11,7 @@ type TicketInfo = {
   event_title: string | null;
   number_of_people: number | null;
   payment_status: string | null;
+  entered_count: number | null;
   is_checked_in: boolean | null;
   checked_in_at: string | null;
 };
@@ -94,8 +95,6 @@ export default function ScannerPage() {
 function Scanner() {
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const lastCodeRef = useRef<string | null>(null);
-  // Tracks whether start() has actually resolved yet — prevents calling
-  // pause/stop/resume before the camera is really running.
   const isRunningRef = useRef(false);
   const [paused, setPaused] = useState(false);
 
@@ -116,7 +115,7 @@ function Scanner() {
         { facingMode: "environment" },
         { fps: 10, qrbox: 250 },
         (decodedText) => handleScan(decodedText),
-        () => {} // ignore per-frame decode misses
+        () => {}
       )
       .then(() => {
         if (mounted) isRunningRef.current = true;
@@ -129,8 +128,6 @@ function Scanner() {
     };
   }, []);
 
-  // Only call stop() if the scanner is actually in a state where stop()
-  // is legal (SCANNING or PAUSED). Calling it in NOT_STARTED throws.
   const safeStop = async () => {
     const scanner = scannerRef.current;
     if (!scanner) return;
@@ -143,7 +140,6 @@ function Scanner() {
         await scanner.stop();
       }
     } catch (err) {
-      // Swallow — this happens harmlessly on fast unmount/remount cycles
       console.warn("Scanner stop skipped:", err);
     }
     isRunningRef.current = false;
@@ -180,27 +176,22 @@ function Scanner() {
     setPaused(false);
   };
 
-const handleScan = async (ticketCode: string) => {
-  ticketCode = ticketCode.trim(); // ✅ guard against stray whitespace/newlines
-  console.log("Scanned raw ticket code:", JSON.stringify(ticketCode)); // ✅ temp debug
+  const handleScan = async (ticketCode: string) => {
+    ticketCode = ticketCode.trim();
 
-  if (paused || lookupBusy || lastCodeRef.current === ticketCode) return;
+    if (paused || lookupBusy || lastCodeRef.current === ticketCode) return;
     lastCodeRef.current = ticketCode;
 
     await pauseCamera();
     setLookupBusy(true);
     setResult(null);
 
-const { data, error } = await supabase.rpc("get_ticket_info", {
-  p_ticket_code: ticketCode,
-});
-setLookupBusy(false);
+    const { data, error } = await supabase.rpc("get_ticket_info", {
+      p_ticket_code: ticketCode,
+    });
+    setLookupBusy(false);
 
-if (error) {
-  console.error("get_ticket_info RPC error:", error); // ✅ temp debug — check console
-}
-
-const info: TicketInfo | undefined = data?.[0];
+    const info: TicketInfo | undefined = data?.[0];
 
     if (error || !info?.found) {
       setResult({
@@ -217,14 +208,17 @@ const info: TicketInfo | undefined = data?.[0];
       return;
     }
 
-    if (info.is_checked_in) {
+    // ✅ Use remaining headcount instead of a one-shot boolean
+    const remaining = (info.number_of_people ?? 0) - (info.entered_count ?? 0);
+
+    if (remaining <= 0) {
       setResult({
         success: false,
-        message: "Ticket already checked in",
+        message: "All paid guests on this ticket have already entered",
         booking_id: info.booking_id,
         event_title: info.event_title,
         number_of_people: info.number_of_people,
-        entered_count: null,
+        entered_count: info.entered_count,
         already_checked_in_at: info.checked_in_at,
       });
       await resumeCamera();
@@ -239,7 +233,7 @@ const info: TicketInfo | undefined = data?.[0];
         booking_id: info.booking_id,
         event_title: info.event_title,
         number_of_people: info.number_of_people,
-        entered_count: null,
+        entered_count: info.entered_count,
         already_checked_in_at: null,
       });
       await resumeCamera();
@@ -247,7 +241,8 @@ const info: TicketInfo | undefined = data?.[0];
       return;
     }
 
-    setPeopleInput(String(info.number_of_people ?? 1));
+    // ✅ Default the input to what's remaining, not the full original count
+    setPeopleInput(String(remaining));
     setPendingTicket({ code: ticketCode, info });
   };
 
@@ -268,7 +263,7 @@ const info: TicketInfo | undefined = data?.[0];
         booking_id: pendingTicket.info.booking_id,
         event_title: pendingTicket.info.event_title,
         number_of_people: pendingTicket.info.number_of_people,
-        entered_count: count,
+        entered_count: pendingTicket.info.entered_count,
         already_checked_in_at: null,
       });
       return;
@@ -307,6 +302,10 @@ const info: TicketInfo | undefined = data?.[0];
     setResult(data?.[0] ?? null);
   };
 
+  const remainingForPending = pendingTicket
+    ? (pendingTicket.info.number_of_people ?? 0) - (pendingTicket.info.entered_count ?? 0)
+    : 0;
+
   return (
     <div className="min-h-screen bg-zinc-950 text-white p-6 flex flex-col items-center gap-6">
       <div className="flex items-center gap-2">
@@ -333,8 +332,7 @@ const info: TicketInfo | undefined = data?.[0];
                 {pendingTicket.info.event_title}
               </p>
               <p className="text-xs text-white/40 uppercase tracking-widest mt-1">
-                Paid for {pendingTicket.info.number_of_people}{" "}
-                {pendingTicket.info.number_of_people === 1 ? "person" : "people"}
+                {pendingTicket.info.entered_count ?? 0} of {pendingTicket.info.number_of_people} entered — {remainingForPending} remaining
               </p>
             </div>
 
@@ -345,7 +343,7 @@ const info: TicketInfo | undefined = data?.[0];
               <input
                 type="number"
                 min={1}
-                max={pendingTicket.info.number_of_people ?? undefined}
+                max={remainingForPending}
                 value={peopleInput}
                 onChange={(e) => setPeopleInput(e.target.value)}
                 className="w-full px-4 py-3 rounded-2xl bg-zinc-800 border border-white/10 text-center text-lg font-black outline-none focus:border-brand-yellow"
