@@ -3,7 +3,16 @@
 import { useEffect, useRef, useState } from "react";
 import { Html5Qrcode, Html5QrcodeScannerState } from "html5-qrcode";
 import { supabase } from "@/utils/supabase";
-import { CheckCircle2, XCircle, Users2, Lock, ShieldCheck, User, Mail } from "lucide-react";
+import {
+  CheckCircle2,
+  XCircle,
+  Users2,
+  Lock,
+  ShieldCheck,
+  User,
+  Mail,
+  Keyboard,
+} from "lucide-react";
 
 type AdditionalGuest = {
   name: string;
@@ -11,8 +20,6 @@ type AdditionalGuest = {
   entered?: boolean;
 };
 
-// Flattened structural map for rendering the manifest list UI.
-// index 0 = primary booker, index 1..n = additional_guests[i-1]
 interface GuestEntry {
   name: string;
   email: string;
@@ -126,6 +133,9 @@ function Scanner() {
 
   const [result, setResult] = useState<CheckInResult | null>(null);
 
+  // ✅ NEW — manual entry fallback
+  const [manualCode, setManualCode] = useState("");
+
   useEffect(() => {
     const scanner = new Html5Qrcode("reader");
     scannerRef.current = scanner;
@@ -197,7 +207,6 @@ function Scanner() {
     setPaused(false);
   };
 
-  // Build the flattened, selectable guest manifest from raw ticket info
   const buildManifest = (info: TicketInfo): GuestEntry[] => {
     const { name, email, phone, additional_guests, is_checked_in } = info;
     const list: GuestEntry[] = [];
@@ -237,13 +246,13 @@ function Scanner() {
     return list;
   };
 
-  const handleScan = async (ticketCode: string) => {
-    ticketCode = ticketCode.trim();
+  // ✅ shared lookup logic used by both the QR scan and manual entry
+  const lookupTicket = async (rawCode: string) => {
+    const ticketCode = rawCode.trim();
+    if (!ticketCode) return;
 
-    if (paused || lookupBusy || lastCodeRef.current === ticketCode) return;
-    lastCodeRef.current = ticketCode;
+    console.log("LOOKUP TICKET CODE:", JSON.stringify(ticketCode));
 
-    await pauseCamera();
     setLookupBusy(true);
     setResult(null);
 
@@ -252,7 +261,7 @@ function Scanner() {
     });
     setLookupBusy(false);
 
-    console.log("get_ticket_info result:", data, error); // 👈 temp debug log, remove later
+    console.log("get_ticket_info result:", data, error);
 
     const info: TicketInfo | undefined = data?.[0];
 
@@ -266,8 +275,6 @@ function Scanner() {
         entered_count: null,
         already_checked_in_at: null,
       });
-      await resumeCamera();
-      lastCodeRef.current = null;
       return;
     }
 
@@ -283,8 +290,6 @@ function Scanner() {
         entered_count: info.entered_count,
         already_checked_in_at: info.checked_in_at,
       });
-      await resumeCamera();
-      lastCodeRef.current = null;
       return;
     }
 
@@ -298,16 +303,32 @@ function Scanner() {
         entered_count: info.entered_count,
         already_checked_in_at: null,
       });
-      await resumeCamera();
-      lastCodeRef.current = null;
       return;
     }
 
-    // Default-select everyone who hasn't entered yet
     const manifest = buildManifest(info);
     const notEntered = new Set(manifest.filter((g) => !g.entered).map((g) => g.index));
     setSelectedIndices(notEntered);
     setPendingTicket({ code: ticketCode, info });
+  };
+
+  const handleScan = async (ticketCode: string) => {
+    const trimmed = ticketCode.trim();
+    if (paused || lookupBusy || lastCodeRef.current === trimmed) return;
+    lastCodeRef.current = trimmed;
+
+    await pauseCamera();
+    await lookupTicket(trimmed);
+    await resumeCamera();
+    lastCodeRef.current = null;
+  };
+
+  const handleManualLookup = async () => {
+    if (!manualCode.trim() || lookupBusy) return;
+    await pauseCamera();
+    await lookupTicket(manualCode);
+    setManualCode("");
+    await resumeCamera();
   };
 
   const cancelPending = async () => {
@@ -318,7 +339,7 @@ function Scanner() {
   };
 
   const toggleGuest = (index: number, entered: boolean) => {
-    if (entered) return; // already checked in, can't toggle off
+    if (entered) return;
     setSelectedIndices((prev) => {
       const next = new Set(prev);
       if (next.has(index)) {
@@ -385,6 +406,30 @@ function Scanner() {
         className="w-full max-w-sm rounded-3xl overflow-hidden border border-white/10"
       />
 
+      {/* ✅ NEW — manual entry fallback */}
+      <div className="w-full max-w-sm bg-zinc-900 border border-white/10 rounded-2xl p-4 flex flex-col gap-2">
+        <label className="text-[10px] font-black uppercase tracking-widest text-white/40 flex items-center gap-1.5">
+          <Keyboard size={12} /> Or enter ticket code manually
+        </label>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={manualCode}
+            onChange={(e) => setManualCode(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleManualLookup()}
+            placeholder="Paste ticket code"
+            className="flex-1 px-3 py-2 rounded-xl bg-zinc-800 border border-white/10 text-xs font-mono outline-none focus:border-brand-yellow"
+          />
+          <button
+            onClick={handleManualLookup}
+            disabled={lookupBusy || !manualCode.trim()}
+            className="px-4 py-2 rounded-xl bg-brand-yellow text-brand-green font-black uppercase text-[10px] tracking-widest disabled:opacity-50"
+          >
+            Look Up
+          </button>
+        </div>
+      </div>
+
       {lookupBusy && (
         <p className="text-xs font-black uppercase tracking-widest text-white/40">
           Looking up ticket...
@@ -403,7 +448,6 @@ function Scanner() {
               </p>
             </div>
 
-            {/* --- Selectable Guest Manifest --- */}
             <div className="bg-zinc-950/50 rounded-2xl border border-white/5 p-4 flex flex-col gap-3 max-h-72 overflow-y-auto custom-scrollbar">
               <p className="text-[10px] font-black uppercase tracking-widest text-white/45 border-b border-white/5 pb-2 flex items-center gap-1.5">
                 <Users2 size={12} className="text-brand-yellow" /> Select who's entering
