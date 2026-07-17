@@ -11,7 +11,7 @@ import {
   ShieldCheck,
   User,
   Mail,
-  Keyboard,
+  LogOut,
 } from "lucide-react";
 
 type AdditionalGuest = {
@@ -84,11 +84,26 @@ export default function ScannerPage() {
     setAuthed(true);
   };
 
+  // ✅ NEW — logout clears the session flag and drops back to the password screen
+  const handleLogout = () => {
+    sessionStorage.removeItem(SESSION_KEY);
+    setPasswordInput("");
+    setAuthError(null);
+    setAuthed(false);
+  };
+
   if (!authed) {
     return (
       <div className="min-h-screen bg-zinc-950 text-white flex items-center justify-center p-6">
         <div className="w-full max-w-sm bg-zinc-900 border border-white/10 rounded-3xl p-8 flex flex-col items-center gap-5">
-          <Lock size={32} className="text-brand-yellow" />
+          {/* ✅ NEW — logo */}
+          <img
+            src="/logo.png"
+            alt="Rakvih Events"
+            className="w-20 h-20 object-contain mb-1"
+          />
+
+          <Lock size={28} className="text-brand-yellow" />
           <h1 className="text-lg font-black uppercase tracking-widest text-center">
             Staff Access Only
           </h1>
@@ -117,10 +132,10 @@ export default function ScannerPage() {
     );
   }
 
-  return <Scanner />;
+  return <Scanner onLogout={handleLogout} />;
 }
 
-function Scanner() {
+function Scanner({ onLogout }: { onLogout: () => void }) {
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const lastCodeRef = useRef<string | null>(null);
   const isRunningRef = useRef(false);
@@ -132,9 +147,6 @@ function Scanner() {
   const [confirmBusy, setConfirmBusy] = useState(false);
 
   const [result, setResult] = useState<CheckInResult | null>(null);
-
-  // ✅ NEW — manual entry fallback
-  const [manualCode, setManualCode] = useState("");
 
   useEffect(() => {
     const scanner = new Html5Qrcode("reader");
@@ -246,12 +258,9 @@ function Scanner() {
     return list;
   };
 
-  // ✅ shared lookup logic used by both the QR scan and manual entry
   const lookupTicket = async (rawCode: string) => {
     const ticketCode = rawCode.trim();
     if (!ticketCode) return;
-
-    console.log("LOOKUP TICKET CODE:", JSON.stringify(ticketCode));
 
     setLookupBusy(true);
     setResult(null);
@@ -260,8 +269,6 @@ function Scanner() {
       p_ticket_code: ticketCode,
     });
     setLookupBusy(false);
-
-    console.log("get_ticket_info result:", data, error);
 
     const info: TicketInfo | undefined = data?.[0];
 
@@ -321,14 +328,6 @@ function Scanner() {
     await lookupTicket(trimmed);
     await resumeCamera();
     lastCodeRef.current = null;
-  };
-
-  const handleManualLookup = async () => {
-    if (!manualCode.trim() || lookupBusy) return;
-    await pauseCamera();
-    await lookupTicket(manualCode);
-    setManualCode("");
-    await resumeCamera();
   };
 
   const cancelPending = async () => {
@@ -396,39 +395,25 @@ function Scanner() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white p-6 flex flex-col items-center gap-6">
-      <div className="flex items-center gap-2">
-        <ShieldCheck size={20} className="text-brand-yellow" />
-        <h1 className="text-2xl font-black uppercase tracking-widest">Entry Scanner</h1>
+      {/* ✅ Header with logo + logout */}
+      <div className="w-full max-w-sm flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <ShieldCheck size={20} className="text-brand-yellow" />
+          <h1 className="text-xl font-black uppercase tracking-widest">Entry Scanner</h1>
+        </div>
+        <button
+          onClick={onLogout}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-zinc-900 border border-white/10 text-white/50 hover:text-white hover:border-white/20 transition-colors text-[10px] font-black uppercase tracking-widest"
+        >
+          <LogOut size={13} />
+          Logout
+        </button>
       </div>
 
       <div
         id="reader"
         className="w-full max-w-sm rounded-3xl overflow-hidden border border-white/10"
       />
-
-      {/* ✅ NEW — manual entry fallback */}
-      <div className="w-full max-w-sm bg-zinc-900 border border-white/10 rounded-2xl p-4 flex flex-col gap-2">
-        <label className="text-[10px] font-black uppercase tracking-widest text-white/40 flex items-center gap-1.5">
-          <Keyboard size={12} /> Or enter ticket code manually
-        </label>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={manualCode}
-            onChange={(e) => setManualCode(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleManualLookup()}
-            placeholder="Paste ticket code"
-            className="flex-1 px-3 py-2 rounded-xl bg-zinc-800 border border-white/10 text-xs font-mono outline-none focus:border-brand-yellow"
-          />
-          <button
-            onClick={handleManualLookup}
-            disabled={lookupBusy || !manualCode.trim()}
-            className="px-4 py-2 rounded-xl bg-brand-yellow text-brand-green font-black uppercase text-[10px] tracking-widest disabled:opacity-50"
-          >
-            Look Up
-          </button>
-        </div>
-      </div>
 
       {lookupBusy && (
         <p className="text-xs font-black uppercase tracking-widest text-white/40">
