@@ -17,10 +17,19 @@ import {
   XCircle,
   QrCode,
   X,
+  User,
+  Mail,
 } from 'lucide-react';
 import Link from 'next/link';
 
 type TabKey = 'events' | 'live';
+
+// A single person on a booking — primary booker or additional guest
+interface GuestEntry {
+  name: string;
+  email: string;
+  isPrimary?: boolean;
+}
 
 // ✅ Normalized shape so both `bookings` and `live_event_bookings` rows can
 // share the exact same card UI below.
@@ -40,6 +49,8 @@ interface NormalizedBooking {
   ticketCode?: string | null;
   isCheckedIn?: boolean;
   checkedInAt?: string | null;
+  // ✅ NEW — primary booker + every additional guest's name/email
+  guests?: GuestEntry[];
 }
 
 export default function BookingsPage() {
@@ -51,6 +62,9 @@ export default function BookingsPage() {
 
   // ✅ NEW — which booking's QR is currently open in the modal
   const [scanBooking, setScanBooking] = useState<NormalizedBooking | null>(null);
+
+  // ✅ NEW — which booking's guest list is currently open in the modal
+  const [guestListBooking, setGuestListBooking] = useState<NormalizedBooking | null>(null);
 
   useEffect(() => {
     const fetchMyBookings = async () => {
@@ -116,27 +130,41 @@ export default function BookingsPage() {
         detailHref: `/site/events/${item.event_id}`,
       }));
 
-      const normalizedLive: NormalizedBooking[] = (liveRes.data || []).map((item: any) => ({
-        id: item.id,
-        title: item.live_events?.title || 'Untitled Event',
-        image: item.live_events?.image_urls?.[0] || null,
-        category: item.live_events?.category || null,
-        packageLabel: item.live_event_packages?.package_name || 'General Entry',
-        price: Number(item.amount || 0),
-        // ✅ live_event_bookings uses `payment_status`, not `status`, and its
-        // values are 'pending' | 'paid' | 'failed' rather than 'confirmed'.
-        status: (item.payment_status || 'pending').toLowerCase(),
-        createdAt: item.created_at,
-        // ✅ Route matches the live event detail page at
-        // /site/events/live/[id]/page.tsx
-        detailHref: `/site/events/live/${item.live_event_id}`,
-        numberOfPeople: item.number_of_people,
-        location: item.live_events?.location || null,
-        // ✅ NEW — comes straight off the row (added via the migration)
-        ticketCode: item.ticket_code || null,
-        isCheckedIn: !!item.is_checked_in,
-        checkedInAt: item.checked_in_at || null,
-      }));
+      const normalizedLive: NormalizedBooking[] = (liveRes.data || []).map((item: any) => {
+        // Primary booker (whoever paid) + every additional guest stored in
+        // the additional_guests jsonb column, e.g.
+        // [{ name: "Rohan", email: "rohan@example.com" }, ...]
+        const additional: GuestEntry[] = Array.isArray(item.additional_guests)
+          ? item.additional_guests.map((g: any) => ({ name: g?.name || '', email: g?.email || '' }))
+          : [];
+        const guests: GuestEntry[] = [
+          { name: item.name || 'Primary Booker', email: item.email || '', isPrimary: true },
+          ...additional,
+        ];
+
+        return {
+          id: item.id,
+          title: item.live_events?.title || 'Untitled Event',
+          image: item.live_events?.image_urls?.[0] || null,
+          category: item.live_events?.category || null,
+          packageLabel: item.live_event_packages?.package_name || 'General Entry',
+          price: Number(item.amount || 0),
+          // ✅ live_event_bookings uses `payment_status`, not `status`, and its
+          // values are 'pending' | 'paid' | 'failed' rather than 'confirmed'.
+          status: (item.payment_status || 'pending').toLowerCase(),
+          createdAt: item.created_at,
+          // ✅ Route matches the live event detail page at
+          // /site/events/live/[id]/page.tsx
+          detailHref: `/site/events/live/${item.live_event_id}`,
+          numberOfPeople: item.number_of_people,
+          location: item.live_events?.location || null,
+          // ✅ NEW — comes straight off the row (added via the migration)
+          ticketCode: item.ticket_code || null,
+          isCheckedIn: !!item.is_checked_in,
+          checkedInAt: item.checked_in_at || null,
+          guests,
+        };
+      });
 
       setEventBookings(normalizedEvents);
       setLiveBookings(normalizedLive);
@@ -474,6 +502,19 @@ export default function BookingsPage() {
                               {item.status}
                             </motion.div>
                           </motion.div>
+
+                          {/* ✅ NEW — Guest List trigger, only shown for group bookings */}
+                          {activeTab === 'live' && item.guests && item.guests.length > 1 && (
+                            <motion.button
+                              onClick={() => setGuestListBooking(item)}
+                              whileHover={{ scale: 1.03 }}
+                              whileTap={{ scale: 0.97 }}
+                              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-2xl bg-slate-100 dark:bg-zinc-800/50 border border-slate-200/50 dark:border-zinc-700/50 text-slate-500 text-[10px] font-black uppercase tracking-widest shadow-sm hover:shadow-md transition-all"
+                            >
+                              <Users2 size={12} />
+                              View Guest List ({item.guests.length})
+                            </motion.button>
+                          )}
                         </motion.div>
 
                         {/* Price & Action */}
@@ -492,7 +533,7 @@ export default function BookingsPage() {
                             ₹{item.price?.toLocaleString('en-IN') || '0'}
                           </motion.p>
 
-                          {/* ✅ NEW — Scan + View Details sit side by side */}
+                          {/* ✅ Scan + View Details sit side by side */}
                           <div className="flex items-center gap-3">
                             {activeTab === 'live' && item.status === 'paid' && (
                               <motion.button
@@ -617,7 +658,7 @@ export default function BookingsPage() {
         </AnimatePresence>
       </div>
 
-      {/* ✅ NEW — QR Scan Modal */}
+      {/* ✅ QR Scan Modal */}
       <AnimatePresence>
         {scanBooking && (
           <motion.div
@@ -685,6 +726,70 @@ export default function BookingsPage() {
                   </p>
                 </div>
               )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ✅ NEW — Guest List Modal */}
+      <AnimatePresence>
+        {guestListBooking && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setGuestListBooking(null)}
+          >
+            <motion.div
+              className="relative w-full max-w-sm bg-white dark:bg-zinc-900 rounded-[2.5rem] p-8 shadow-2xl border border-slate-100 dark:border-zinc-800 max-h-[80vh] flex flex-col"
+              initial={{ opacity: 0, scale: 0.9, y: 30 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 30 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setGuestListBooking(null)}
+                className="absolute top-6 right-6 text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors"
+              >
+                <X size={20} />
+              </button>
+
+              <div className="text-center mb-6 shrink-0">
+                <h3 className="text-lg font-black uppercase tracking-tighter text-brand-green dark:text-white line-clamp-1">
+                  {guestListBooking.title}
+                </h3>
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-1">
+                  {guestListBooking.guests?.length || 0} {(guestListBooking.guests?.length || 0) > 1 ? 'People' : 'Person'} on this booking
+                </p>
+              </div>
+
+              <div className="space-y-3 overflow-y-auto pr-1">
+                {guestListBooking.guests?.map((guest, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 dark:bg-zinc-800/50 border border-slate-100 dark:border-zinc-700"
+                  >
+                    <div className="w-9 h-9 rounded-full bg-brand-green/10 flex items-center justify-center shrink-0">
+                      <User size={16} className="text-brand-green" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-black dark:text-white truncate">
+                        {guest.name || 'Unnamed Guest'}
+                        {guest.isPrimary && (
+                          <span className="ml-2 text-[8px] font-black uppercase tracking-widest text-brand-green">Primary</span>
+                        )}
+                      </p>
+                      {guest.email && (
+                        <p className="text-[10px] text-slate-400 flex items-center gap-1 truncate">
+                          <Mail size={10} /> {guest.email}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </motion.div>
           </motion.div>
         )}

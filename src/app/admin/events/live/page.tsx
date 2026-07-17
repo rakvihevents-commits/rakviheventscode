@@ -14,9 +14,11 @@ export default function ManageLiveEvents() {
   const [editId, setEditId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  
-  // State for dynamic VIP Tables & Packages 
-  const [packages, setPackages] = useState<{ name: string, price: string, requirements: string }[]>([]);
+
+  // Packages now carry their own people_count (how many the
+  // VIP/table package admits), separate from general admission counting.
+  type PackageForm = { name: string; price: string; requirements: string; peopleCount: string };
+  const [packages, setPackages] = useState<PackageForm[]>([]);
 
   // Form Fields State
   const [title, setTitle] = useState("");
@@ -29,6 +31,10 @@ export default function ManageLiveEvents() {
   const [location, setLocation] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+
+  // Minimum group size for GENERAL ADMISSION bookings only.
+  // This does not apply to VIP packages, which use their own peopleCount.
+  const [minGroupSize, setMinGroupSize] = useState("1");
 
   // Media files configuration
   const [imageFiles, setImageFiles] = useState<{ file: File, id: string }[]>([]);
@@ -53,7 +59,8 @@ export default function ManageLiveEvents() {
     setPerks(event.perks?.join(", ") || "");
     setCapacity(event.capacity?.toString() || "150");
     setLocation(event.location || "");
-    
+    setMinGroupSize(event.min_group_size?.toString() || "1");
+
     if (event.start_date) {
       setStartDate(new Date(event.start_date).toISOString().slice(0, 16));
     }
@@ -72,7 +79,8 @@ export default function ManageLiveEvents() {
       setPackages(pkgData.map(p => ({
         name: p.package_name || "",
         price: p.price?.toString() || "",
-        requirements: Array.isArray(p.requirements) ? p.requirements.join(", ") : ""
+        requirements: Array.isArray(p.requirements) ? p.requirements.join(", ") : "",
+        peopleCount: p.people_count?.toString() || "1",
       })));
     } else {
       setPackages([]);
@@ -125,7 +133,8 @@ export default function ManageLiveEvents() {
         capacity: parseInt(capacity) || 150,
         location,
         start_date: startDate ? new Date(startDate).toISOString() : new Date().toISOString(),
-        end_date: endDate ? new Date(endDate).toISOString() : null
+        end_date: endDate ? new Date(endDate).toISOString() : null,
+        min_group_size: parseInt(minGroupSize) || 1,
       };
 
       let liveEventId = editId;
@@ -158,7 +167,8 @@ export default function ManageLiveEvents() {
             live_event_id: liveEventId,
             package_name: pkg.name,
             price: parseFloat(pkg.price) || 0,
-            requirements: pkg.requirements.split(",").map(r => r.trim()).filter(Boolean)
+            requirements: pkg.requirements.split(",").map(r => r.trim()).filter(Boolean),
+            people_count: parseInt(pkg.peopleCount) || 1,
           }));
 
         if (packagePayload.length > 0) {
@@ -180,7 +190,7 @@ export default function ManageLiveEvents() {
     setIsModalOpen(false);
     setViewEvent(null);
     setEditId(null);
-    setTitle(""); 
+    setTitle("");
     setPackages([]);
     setCategory("Club Night");
     setCoverCharge("");
@@ -191,6 +201,7 @@ export default function ManageLiveEvents() {
     setLocation("");
     setStartDate("");
     setEndDate("");
+    setMinGroupSize("1");
     setImageFiles([]);
     setExistingImages([]);
   };
@@ -253,6 +264,7 @@ export default function ManageLiveEvents() {
               <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Media Covers</th>
               <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Gigs, Location & Timings</th>
               <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Allowed Capacity</th>
+              <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Min Group Size</th>
               <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Cover Charges</th>
               <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Stage Status</th>
               <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Settings</th>
@@ -274,7 +286,7 @@ export default function ManageLiveEvents() {
                     )}
                   </div>
                 </td>
-                
+
                 <td className="px-8 py-5">
                   <p className="font-bold text-base leading-tight">{event.title}</p>
                   <div className="flex flex-col gap-1 mt-1 text-slate-400">
@@ -297,6 +309,13 @@ export default function ManageLiveEvents() {
                       <p className="text-[9px] font-bold text-slate-400 uppercase">Max Guests</p>
                     </div>
                   </div>
+                </td>
+
+                {/* Min Group Size column */}
+                <td className="px-8 py-5">
+                  <span className="px-3 py-1.5 bg-blue-50 border border-blue-100 text-blue-700 rounded-lg text-[10px] font-black uppercase">
+                    {event.min_group_size ?? 1}+ per booking
+                  </span>
                 </td>
 
                 <td className="px-8 py-5 font-black text-base text-zinc-900">₹{event.cover_charge}</td>
@@ -453,6 +472,27 @@ export default function ManageLiveEvents() {
                       </div>
                     </div>
 
+                    {/* Min Group Size (general admission only) */}
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="space-y-1">
+                        <label className="text-[8px] font-black uppercase text-slate-400 tracking-widest">
+                          Min Group Size (General Entry)
+                        </label>
+                        <input
+                          type="number"
+                          min={1}
+                          value={minGroupSize}
+                          onChange={e => setMinGroupSize(e.target.value)}
+                          required
+                          className="w-full p-3 bg-slate-50 rounded-xl text-xs font-bold text-black outline-none"
+                          placeholder="e.g. 4"
+                        />
+                        <p className="text-[8px] text-slate-400 font-medium leading-tight pt-1">
+                          Minimum people required per general-entry booking. Does not apply to VIP/table packages below — those set their own headcount.
+                        </p>
+                      </div>
+                    </div>
+
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1">
                         <label className="text-[8px] font-black uppercase text-slate-400 tracking-widest">Gate Opens (Start Time)</label>
@@ -496,7 +536,7 @@ export default function ManageLiveEvents() {
                       />
                     </div>
 
-                    {/* VIP Tables Packages Subform */}
+                    {/* VIP Tables Packages Subform — now with per-package headcount */}
                     <div className="pt-2 border-t border-slate-100">
                       <div className="flex justify-between items-center mb-2">
                         <h3 className="text-[9px] font-black uppercase tracking-widest flex items-center gap-1 text-slate-500">
@@ -504,7 +544,7 @@ export default function ManageLiveEvents() {
                         </h3>
                         <button
                           type="button"
-                          onClick={() => setPackages([...packages, { name: "", price: "", requirements: "" }])}
+                          onClick={() => setPackages([...packages, { name: "", price: "", requirements: "", peopleCount: "1" }])}
                           className="text-[9px] font-black text-red-600 bg-red-50 px-3 py-1.5 rounded-lg hover:bg-red-100 transition-colors"
                         >
                           + Add VIP Table Package
@@ -530,17 +570,36 @@ export default function ManageLiveEvents() {
                                 setPackages(newPkgs);
                               }}
                             />
-                            <input
-                              placeholder="Package Price (₹)"
-                              type="number"
-                              className="w-full p-2 bg-white rounded-lg text-[10px] font-bold text-black outline-none border border-slate-100"
-                              value={pkg.price}
-                              onChange={(e) => {
-                                const newPkgs = [...packages];
-                                newPkgs[index] = { ...newPkgs[index], price: e.target.value };
-                                setPackages(newPkgs);
-                              }}
-                            />
+                            <div className="flex gap-2">
+                              <input
+                                placeholder="Price (₹)"
+                                type="number"
+                                className="w-1/2 p-2 bg-white rounded-lg text-[10px] font-bold text-black outline-none border border-slate-100"
+                                value={pkg.price}
+                                onChange={(e) => {
+                                  const newPkgs = [...packages];
+                                  newPkgs[index] = { ...newPkgs[index], price: e.target.value };
+                                  setPackages(newPkgs);
+                                }}
+                              />
+                              {/* This package's own headcount, independent
+                                  of general admission's min_group_size */}
+                              <input
+                                placeholder="People Count"
+                                type="number"
+                                min={1}
+                                className="w-1/2 p-2 bg-white rounded-lg text-[10px] font-bold text-black outline-none border border-slate-100"
+                                value={pkg.peopleCount}
+                                onChange={(e) => {
+                                  const newPkgs = [...packages];
+                                  newPkgs[index] = { ...newPkgs[index], peopleCount: e.target.value };
+                                  setPackages(newPkgs);
+                                }}
+                              />
+                            </div>
+                            <p className="text-[7px] text-slate-400 font-medium leading-tight">
+                              People Count = how many guests this specific package admits (e.g. a table for 5 admits 5, regardless of the event's general min group size).
+                            </p>
                             <textarea
                               placeholder="Inclusions (e.g. 1 Vodka, Mixers Included) CSV"
                               className="w-full p-2 bg-white rounded-lg text-[9px] text-black outline-none border border-slate-100 resize-none"
@@ -590,7 +649,7 @@ export default function ManageLiveEvents() {
             </div>
 
             <div className="p-8 space-y-6 overflow-y-auto text-black">
-              <div className="grid grid-cols-3 gap-4 border-b border-slate-100 pb-6">
+              <div className="grid grid-cols-4 gap-4 border-b border-slate-100 pb-6">
                 <div>
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Entry Pass</p>
                   <p className="text-lg font-black mt-1">₹{viewEvent.cover_charge}</p>
@@ -598,6 +657,11 @@ export default function ManageLiveEvents() {
                 <div>
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Room Capacity</p>
                   <p className="text-sm font-bold mt-1 flex items-center gap-1"><Users2 size={14} className="text-blue-500" />{viewEvent.capacity} Guests</p>
+                </div>
+                {/* Min group size shown in view modal */}
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Min Group (General)</p>
+                  <p className="text-sm font-bold mt-1 flex items-center gap-1"><Users2 size={14} className="text-emerald-500" />{viewEvent.min_group_size ?? 1}+ people</p>
                 </div>
                 <div>
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Location</p>
@@ -646,6 +710,10 @@ export default function ManageLiveEvents() {
                           <p className="text-xs font-bold uppercase">{pkg.package_name}</p>
                           <p className="text-xs font-black text-red-600">₹{pkg.price}</p>
                         </div>
+                        {/* Package-specific headcount shown here */}
+                        <p className="text-[9px] font-bold text-slate-500 flex items-center gap-1">
+                          <Users2 size={11} className="text-blue-500" /> Admits {pkg.people_count ?? 1} {pkg.people_count === 1 ? 'person' : 'people'}
+                        </p>
                         {pkg.requirements && pkg.requirements.length > 0 && (
                           <div className="flex flex-wrap gap-1">
                             {pkg.requirements.map((req: string, rIdx: number) => (
