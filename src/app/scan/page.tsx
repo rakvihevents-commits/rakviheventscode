@@ -180,20 +180,27 @@ function Scanner() {
     setPaused(false);
   };
 
-  const handleScan = async (ticketCode: string) => {
-    if (paused || lookupBusy || lastCodeRef.current === ticketCode) return;
+const handleScan = async (ticketCode: string) => {
+  ticketCode = ticketCode.trim(); // ✅ guard against stray whitespace/newlines
+  console.log("Scanned raw ticket code:", JSON.stringify(ticketCode)); // ✅ temp debug
+
+  if (paused || lookupBusy || lastCodeRef.current === ticketCode) return;
     lastCodeRef.current = ticketCode;
 
     await pauseCamera();
     setLookupBusy(true);
     setResult(null);
 
-    const { data, error } = await supabase.rpc("get_ticket_info", {
-      p_ticket_code: ticketCode,
-    });
-    setLookupBusy(false);
+const { data, error } = await supabase.rpc("get_ticket_info", {
+  p_ticket_code: ticketCode,
+});
+setLookupBusy(false);
 
-    const info: TicketInfo | undefined = data?.[0];
+if (error) {
+  console.error("get_ticket_info RPC error:", error); // ✅ temp debug — check console
+}
+
+const info: TicketInfo | undefined = data?.[0];
 
     if (error || !info?.found) {
       setResult({
