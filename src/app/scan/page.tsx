@@ -252,6 +252,8 @@ function Scanner() {
     });
     setLookupBusy(false);
 
+    console.log("get_ticket_info result:", data, error); // 👈 temp debug log, remove later
+
     const info: TicketInfo | undefined = data?.[0];
 
     if (error || !info?.found) {
