@@ -98,7 +98,7 @@ export default function ScannerPage() {
         <div className="w-full max-w-sm bg-zinc-900 border border-white/10 rounded-3xl p-8 flex flex-col items-center gap-5">
           {/* ✅ NEW — logo */}
           <img
-            src="/logo.png"
+            src="/logo.jpeg"
             alt="Rakvih Events"
             className="w-20 h-20 object-contain mb-1"
           />
