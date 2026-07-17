@@ -8,14 +8,18 @@ import { CheckCircle2, XCircle, Users2, Lock, ShieldCheck, User, Mail } from "lu
 type AdditionalGuest = {
   name: string;
   email?: string;
+  entered?: boolean;
 };
 
-// Represents a clean, flattened structural map for rendering the manifest list UI
+// Flattened structural map for rendering the manifest list UI.
+// index 0 = primary booker, index 1..n = additional_guests[i-1]
 interface GuestEntry {
   name: string;
   email: string;
   phone?: string;
   isPrimary?: boolean;
+  entered: boolean;
+  index: number;
 }
 
 type TicketInfo = {
@@ -116,7 +120,7 @@ function Scanner() {
   const [paused, setPaused] = useState(false);
 
   const [pendingTicket, setPendingTicket] = useState<{ code: string; info: TicketInfo } | null>(null);
-  const [peopleInput, setPeopleInput] = useState("1");
+  const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
   const [lookupBusy, setLookupBusy] = useState(false);
   const [confirmBusy, setConfirmBusy] = useState(false);
 
@@ -193,6 +197,46 @@ function Scanner() {
     setPaused(false);
   };
 
+  // Build the flattened, selectable guest manifest from raw ticket info
+  const buildManifest = (info: TicketInfo): GuestEntry[] => {
+    const { name, email, phone, additional_guests, is_checked_in } = info;
+    const list: GuestEntry[] = [];
+
+    list.push({
+      name: name || "Primary Booker",
+      email: email || "",
+      phone: phone || undefined,
+      isPrimary: true,
+      entered: !!is_checked_in,
+      index: 0,
+    });
+
+    let additionalParsed: AdditionalGuest[] = [];
+    if (Array.isArray(additional_guests)) {
+      additionalParsed = additional_guests;
+    } else if (additional_guests) {
+      try {
+        additionalParsed = JSON.parse(additional_guests);
+      } catch {
+        additionalParsed = [];
+      }
+    }
+
+    additionalParsed.forEach((g, i) => {
+      if (g && g.name) {
+        list.push({
+          name: g.name,
+          email: g.email || "",
+          isPrimary: false,
+          entered: !!g.entered,
+          index: i + 1,
+        });
+      }
+    });
+
+    return list;
+  };
+
   const handleScan = async (ticketCode: string) => {
     ticketCode = ticketCode.trim();
 
@@ -257,32 +301,35 @@ function Scanner() {
       return;
     }
 
-    setPeopleInput(String(remaining));
+    // Default-select everyone who hasn't entered yet
+    const manifest = buildManifest(info);
+    const notEntered = new Set(manifest.filter((g) => !g.entered).map((g) => g.index));
+    setSelectedIndices(notEntered);
     setPendingTicket({ code: ticketCode, info });
   };
 
   const cancelPending = async () => {
     setPendingTicket(null);
+    setSelectedIndices(new Set());
     lastCodeRef.current = null;
     await resumeCamera();
   };
 
-  const confirmCheckIn = async () => {
-    if (!pendingTicket) return;
-    const count = parseInt(peopleInput, 10);
+  const toggleGuest = (index: number, entered: boolean) => {
+    if (entered) return; // already checked in, can't toggle off
+    setSelectedIndices((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) {
+        next.delete(index);
+      } else {
+        next.add(index);
+      }
+      return next;
+    });
+  };
 
-    if (!count || count <= 0) {
-      setResult({
-        success: false,
-        message: "Enter a valid number of people",
-        booking_id: pendingTicket.info.booking_id,
-        event_title: pendingTicket.info.event_title,
-        number_of_people: pendingTicket.info.number_of_people,
-        entered_count: pendingTicket.info.entered_count,
-        already_checked_in_at: null,
-      });
-      return;
-    }
+  const confirmCheckIn = async () => {
+    if (!pendingTicket || selectedIndices.size === 0) return;
 
     setConfirmBusy(true);
 
@@ -290,14 +337,15 @@ function Scanner() {
       data: { session },
     } = await supabase.auth.getSession();
 
-    const { data, error } = await supabase.rpc("check_in_ticket", {
+    const { data, error } = await supabase.rpc("check_in_ticket_selected", {
       p_ticket_code: pendingTicket.code,
       p_scanned_by: session?.user?.id ?? null,
-      p_people_count: count,
+      p_guest_indices: Array.from(selectedIndices),
     });
 
     setConfirmBusy(false);
     setPendingTicket(null);
+    setSelectedIndices(new Set());
     lastCodeRef.current = null;
     await resumeCamera();
 
@@ -308,7 +356,7 @@ function Scanner() {
         booking_id: null,
         event_title: null,
         number_of_people: null,
-        entered_count: count,
+        entered_count: null,
         already_checked_in_at: null,
       });
       return;
@@ -321,49 +369,7 @@ function Scanner() {
     ? (pendingTicket.info.number_of_people ?? 0) - (pendingTicket.info.entered_count ?? 0)
     : 0;
 
-  // Exact structural helper normalization mirroring the Bookings layout logic
-  const getNormalizedManifestList = (): GuestEntry[] => {
-    if (!pendingTicket) return [];
-
-    const { name, email, phone, additional_guests } = pendingTicket.info;
-    const list: GuestEntry[] = [];
-
-    // 1. Enforce Primary guest at the top position
-    list.push({
-      name: name || "Primary Booker",
-      email: email || "",
-      phone: phone || undefined,
-      isPrimary: true,
-    });
-
-    // 2. Parse and safely appends array instances
-    if (additional_guests) {
-      let additionalParsed: AdditionalGuest[] = [];
-      if (Array.isArray(additional_guests)) {
-        additionalParsed = additional_guests;
-      } else {
-        try {
-          additionalParsed = JSON.parse(additional_guests);
-        } catch {
-          additionalParsed = [];
-        }
-      }
-
-      additionalParsed.forEach((g) => {
-        if (g && g.name) {
-          list.push({
-            name: g.name,
-            email: g.email || "",
-            isPrimary: false,
-          });
-        }
-      });
-    }
-
-    return list;
-  };
-
-  const fullGuestManifest = getNormalizedManifestList();
+  const fullGuestManifest = pendingTicket ? buildManifest(pendingTicket.info) : [];
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white p-6 flex flex-col items-center gap-6">
@@ -395,67 +401,80 @@ function Scanner() {
               </p>
             </div>
 
-            {/* --- Cleaner Consolidated Guest Manifest --- */}
-            <div className="bg-zinc-950/50 rounded-2xl border border-white/5 p-4 flex flex-col gap-3 max-h-60 overflow-y-auto custom-scrollbar">
+            {/* --- Selectable Guest Manifest --- */}
+            <div className="bg-zinc-950/50 rounded-2xl border border-white/5 p-4 flex flex-col gap-3 max-h-72 overflow-y-auto custom-scrollbar">
               <p className="text-[10px] font-black uppercase tracking-widest text-white/45 border-b border-white/5 pb-2 flex items-center gap-1.5">
-                <Users2 size={12} className="text-brand-yellow" /> Registered Guests
+                <Users2 size={12} className="text-brand-yellow" /> Select who's entering
               </p>
-              
-              {fullGuestManifest.map((guest, idx) => (
-                <div 
-                  key={idx} 
-                  className={`flex flex-col gap-0.5 p-3 rounded-2xl border ${
-                    guest.isPrimary 
-                      ? "bg-brand-yellow/5 border-brand-yellow/20" 
-                      : "bg-zinc-800/40 border-white/5"
-                  }`}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <User size={13} className={guest.isPrimary ? "text-brand-yellow" : "text-white/40"} />
-                      <span className={`text-xs font-black uppercase tracking-tight truncate ${
-                        guest.isPrimary ? "text-brand-yellow" : "text-white/90"
-                      }`}>
-                        {guest.name}
-                      </span>
+
+              {fullGuestManifest.map((guest) => {
+                const checked = selectedIndices.has(guest.index);
+                return (
+                  <button
+                    key={guest.index}
+                    type="button"
+                    onClick={() => toggleGuest(guest.index, guest.entered)}
+                    disabled={guest.entered}
+                    className={`flex items-center justify-between gap-2 p-3 rounded-2xl border text-left transition-all ${
+                      guest.entered
+                        ? "bg-emerald-500/10 border-emerald-500/30 opacity-70 cursor-not-allowed"
+                        : checked
+                        ? "bg-brand-yellow/10 border-brand-yellow/40"
+                        : "bg-zinc-800/40 border-white/5"
+                    }`}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <User
+                          size={13}
+                          className={guest.isPrimary ? "text-brand-yellow" : "text-white/40"}
+                        />
+                        <span
+                          className={`text-xs font-black uppercase tracking-tight truncate ${
+                            guest.isPrimary ? "text-brand-yellow" : "text-white/90"
+                          }`}
+                        >
+                          {guest.name}
+                        </span>
+                        {guest.isPrimary && (
+                          <span className="text-[8px] font-black uppercase tracking-widest bg-brand-yellow/20 text-brand-yellow px-1.5 py-0.5 rounded-md border border-brand-yellow/30 shrink-0">
+                            Primary
+                          </span>
+                        )}
+                      </div>
+
+                      {guest.email && (
+                        <div className="flex items-center gap-1.5 pl-4.5 min-w-0 mt-0.5">
+                          <Mail size={11} className="text-white/40 shrink-0" />
+                          <span className="text-[11px] text-white/50 truncate">
+                            {guest.email}
+                          </span>
+                        </div>
+                      )}
+
+                      {guest.isPrimary && guest.phone && (
+                        <div className="text-[10px] text-white/45 pl-4.5 mt-0.5 font-medium tracking-wider">
+                          📱 {guest.phone}
+                        </div>
+                      )}
                     </div>
-                    {guest.isPrimary && (
-                      <span className="text-[8px] font-black uppercase tracking-widest bg-brand-yellow/20 text-brand-yellow px-1.5 py-0.5 rounded-md border border-brand-yellow/30 shrink-0">
-                        Primary
+
+                    {guest.entered ? (
+                      <span className="text-[9px] font-black uppercase tracking-widest text-emerald-400 shrink-0">
+                        Entered ✓
                       </span>
+                    ) : (
+                      <div
+                        className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 ${
+                          checked ? "bg-brand-yellow border-brand-yellow" : "border-white/20"
+                        }`}
+                      >
+                        {checked && <CheckCircle2 size={14} className="text-zinc-950" />}
+                      </div>
                     )}
-                  </div>
-
-                  {guest.email && (
-                    <div className="flex items-center gap-1.5 pl-4.5 min-w-0 mt-0.5">
-                      <Mail size={11} className="text-white/40 shrink-0" />
-                      <span className="text-[11px] text-white/50 truncate">
-                        {guest.email}
-                      </span>
-                    </div>
-                  )}
-
-                  {guest.isPrimary && guest.phone && (
-                    <div className="text-[10px] text-white/45 pl-4.5 mt-0.5 font-medium tracking-wider">
-                      📱 {guest.phone}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            <div>
-              <label className="text-[10px] font-black uppercase tracking-widest text-white/40 block mb-2">
-                How many are entering now?
-              </label>
-              <input
-                type="number"
-                min={1}
-                max={remainingForPending}
-                value={peopleInput}
-                onChange={(e) => setPeopleInput(e.target.value)}
-                className="w-full px-4 py-3 rounded-2xl bg-zinc-800 border border-white/10 text-center text-lg font-black outline-none focus:border-brand-yellow"
-              />
+                  </button>
+                );
+              })}
             </div>
 
             <div className="flex gap-3">
@@ -467,10 +486,12 @@ function Scanner() {
               </button>
               <button
                 onClick={confirmCheckIn}
-                disabled={confirmBusy}
+                disabled={confirmBusy || selectedIndices.size === 0}
                 className="flex-1 py-3 rounded-2xl bg-brand-yellow text-brand-green font-black uppercase text-xs tracking-widest disabled:opacity-50"
               >
-                {confirmBusy ? "Checking in..." : "Confirm Entry"}
+                {confirmBusy
+                  ? "Checking in..."
+                  : `Check In (${selectedIndices.size})`}
               </button>
             </div>
           </div>
