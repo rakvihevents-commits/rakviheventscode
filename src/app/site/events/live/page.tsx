@@ -117,40 +117,6 @@ export default async function EventsPage({ searchParams }: PageProps) {
             </p>
           </div>
 
-          {/* DYNAMIC FILTER TABS */}
-          <div className="flex gap-1.5 p-1 bg-slate-100 dark:bg-zinc-900 rounded-full border border-slate-200 dark:border-white/5 self-start">
-            <Link
-              href="/site/events?filter=all"
-              className={`text-xs font-bold uppercase tracking-wider px-5 py-2.5 rounded-full transition-all ${
-                filter === 'all'
-                  ? 'bg-white dark:bg-zinc-800 text-brand-green dark:text-brand-yellow shadow-sm'
-                  : 'text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              All Events ({events?.length || 0})
-            </Link>
-            <Link
-              href="/site/events?filter=live"
-              className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-5 py-2.5 rounded-full transition-all ${
-                filter === 'live'
-                  ? 'bg-red-600 text-white shadow-sm'
-                  : 'text-slate-500 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400'
-              }`}
-            >
-              <span className={`h-1.5 w-1.5 rounded-full bg-current ${liveEvents.length > 0 ? 'animate-ping' : ''}`} />
-              Live Now ({liveEvents.length})
-            </Link>
-            <Link
-              href="/site/events?filter=upcoming"
-              className={`text-xs font-bold uppercase tracking-wider px-5 py-2.5 rounded-full transition-all ${
-                filter === 'upcoming'
-                  ? 'bg-white dark:bg-zinc-800 text-brand-green dark:text-brand-yellow shadow-sm'
-                  : 'text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              Upcoming ({upcomingEvents.length})
-            </Link>
-          </div>
         </div>
 
         {/* EMPTY STATE */}

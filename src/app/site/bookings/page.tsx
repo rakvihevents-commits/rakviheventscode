@@ -341,7 +341,7 @@ export default function BookingsPage() {
             }`}
           >
             <Radio size={14} />
-            Live Events ({liveBookings.length})
+            UpComing Event ({liveBookings.length})
           </button>
         </motion.div>
 

@@ -323,7 +323,7 @@ export default function LiveEventDetailPage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 gap-4">
         <p className="text-slate-400 font-bold uppercase tracking-wider text-sm">Event not found.</p>
-        <button onClick={() => router.push('/site/events/live')} className="text-xs font-black uppercase underline">Back to Live Events</button>
+        <button onClick={() => router.push('/site/events/live')} className="text-xs font-black uppercase underline">Back to UpComing Event</button>
       </div>
     );
   }

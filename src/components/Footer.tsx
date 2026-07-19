@@ -27,7 +27,7 @@ export default function Footer() {
     const navLinks = [
         { name: 'Home', path: '/' },
         { name: 'Events', path: '/site/events' },
-        { name: 'Packages', path: '/site/packages' },
+        { name: 'Nightlife Events', path: '/site/events/live' },
         { name: 'Gallery', path: '/site/gallery' },
         { name: 'About Us', path: '/site/about' },
         { name: 'Contact', path: '/site/contact' },

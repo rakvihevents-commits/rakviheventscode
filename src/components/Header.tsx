@@ -96,16 +96,10 @@ export default function Header() {
   const navLinks = [
     { name: 'Home', path: '/' },
     {
-      name: 'Live Events',
+      name: 'Nightlife Events',
       path: '/site/events/live',
       isLiveTab: true,
       active: hasLiveEvents
-    },
-    {
-      name: 'Upcoming',
-      path: '/site/events?filter=upcoming',
-      isUpcomingTab: true,
-      active: hasUpcomingEvents
     },
     { name: 'Events', path: '/site/events' },
     { name: 'Gallery', path: '/site/gallery' },

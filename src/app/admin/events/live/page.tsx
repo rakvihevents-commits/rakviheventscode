@@ -180,7 +180,7 @@ export default function ManageLiveEvents() {
       closeModal();
       fetchData();
     } catch (err: any) {
-      alert("Error saving live event data: " + err.message);
+      alert("Error saving Nightlife Events data: " + err.message);
     } finally {
       setLoading(false);
     }
@@ -249,10 +249,10 @@ export default function ManageLiveEvents() {
             <Calendar size={16} />
             <span className="text-xs font-black uppercase tracking-widest text-red-600">Active Stage Management</span>
           </div>
-          <h1 className="text-4xl font-black tracking-tight uppercase">Live Venue Events</h1>
+          <h1 className="text-4xl font-black tracking-tight uppercase">Nightlife Events</h1>
         </div>
         <button onClick={() => setIsModalOpen(true)} className="bg-black text-white px-8 py-4 rounded-2xl font-bold flex items-center gap-2 hover:bg-zinc-800 transition-all shadow-lg">
-          <Plus size={20} /> Deploy Live Event
+          <Plus size={20} /> Deploy Nightlife Events
         </button>
       </div>
 
@@ -622,7 +622,7 @@ export default function ManageLiveEvents() {
                     disabled={loading}
                     className="w-full py-4 bg-black text-white rounded-xl font-black uppercase tracking-[0.2em] text-[10px] shadow-lg hover:bg-zinc-800 transition-all disabled:opacity-50"
                   >
-                    {loading ? "Deploying Active Stage config..." : "Save Live Event Deployment"}
+                    {loading ? "Deploying Active Stage config..." : "Save Nightlife Events Deployment"}
                   </button>
                 </form>
               </div>
