@@ -20,6 +20,15 @@ import {
   CalendarDays
 } from 'lucide-react';
 import LoginModal from './LoginModal';
+  // Upgraded Nav Links containing path-specific queries for filtering inside your event pages
+// 1. Define the type at the top of your array or outside the component
+interface NavLink {
+  name: string;
+  path: string;
+  isLiveTab?: boolean;
+  isUpcomingTab?: boolean;
+  active?: boolean;
+}
 
 export default function Header() {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -92,21 +101,21 @@ export default function Header() {
     window.location.reload();
   };
 
-  // Upgraded Nav Links containing path-specific queries for filtering inside your event pages
-  const navLinks = [
-    { name: 'Home', path: '/' },
-    {
-      name: 'Nightlife Events',
-      path: '/site/events/live',
-      isLiveTab: true,
-      active: hasLiveEvents
-    },
-    { name: 'Events', path: '/site/events' },
-    { name: 'Gallery', path: '/site/gallery' },
-    { name: 'About Us', path: '/site/about' },
-    { name: 'Contact', path: '/site/contact' },
-  ];
 
+// 2. Explicitly apply it to the array
+const navLinks: NavLink[] = [
+  { name: 'Home', path: '/' },
+  {
+    name: 'Nightlife Events',
+    path: '/site/events/live',
+    isLiveTab: true,
+    active: hasLiveEvents
+  },
+  { name: 'Events', path: '/site/events' },
+  { name: 'Gallery', path: '/site/gallery' },
+  { name: 'About Us', path: '/site/about' },
+  { name: 'Contact', path: '/site/contact' },
+];
   // ---------- Animation variants ----------
   const logoVariants: Variants = {
     initial: { opacity: 0, y: -10 },
